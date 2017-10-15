@@ -3,7 +3,7 @@ set -e
 set -x
 
 # Clean
-rm -f firmware/*.o firmware/*.elf firmware/*.hex
+rm -f firmware/*.o firmware/*.elf firmware/*.hex contrib/*.o
 
 CFLAGS="\
 -mmcu=atmega32u4 \
@@ -11,17 +11,19 @@ CFLAGS="\
 -DF_OSC=16000000UL \
 -Os"
 
-INCS="-Ifirmware"
+INCS="-Ifirmware -Icontrib"
 
 # Compile
 function compile { avr-gcc -c $CFLAGS $INCS $1.c -o $1.o; }
 compile firmware/firmware
 compile firmware/led
+compile contrib/usb_keyboard
 
 # Link
 avr-gcc $CFLAGS \
 firmware/firmware.o \
 firmware/led.o \
+contrib/usb_keyboard.o \
 -o firmware/firmware.elf
 
 # Translate
