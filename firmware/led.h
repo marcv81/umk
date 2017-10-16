@@ -1,9 +1,11 @@
 #ifndef LED_H
 #define LED_H
 
-void init_leds();
-void led_1(int on);
-void led_2(int on);
-void led_3(int on);
+#include <stdint.h>
+
+void led_init();
+void led_1(uint8_t on);
+void led_2(uint8_t on);
+void led_3(uint8_t on);
 
 #endif // LED_H

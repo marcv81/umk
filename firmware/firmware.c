@@ -31,7 +31,7 @@ int main()
     // Bump the frequency to 16Mhz
     clock_prescale_set(clock_div_1);
 
-    init_leds();
+    led_init();
 
     usb_init();
     while (!usb_configured()) /* wait */ ;
