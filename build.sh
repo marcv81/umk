@@ -19,14 +19,18 @@ function compile { avr-gcc -c $CFLAGS $INCS $1.c -o $1.o; }
 compile firmware/firmware
 compile firmware/led
 compile firmware/matrix_right
+compile firmware/matrix_left
 compile contrib/usb_keyboard
+compile contrib/twimaster
 
 # Link
 avr-gcc $CFLAGS \
 firmware/firmware.o \
 firmware/led.o \
 firmware/matrix_right.o \
+firmware/matrix_left.o \
 contrib/usb_keyboard.o \
+contrib/twimaster.o \
 -o firmware/firmware.elf
 
 # Translate
