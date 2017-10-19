@@ -9,6 +9,7 @@ CFLAGS="\
 -mmcu=atmega32u4 \
 -DF_CPU=16000000UL \
 -DF_OSC=16000000UL \
+-DMILLIS_TIMER=MILLIS_TIMER1 \
 -Os \
 -std=c99"
 
@@ -22,6 +23,7 @@ compile firmware/matrix_right
 compile firmware/matrix_left
 compile contrib/usb_keyboard
 compile contrib/twimaster
+compile contrib/millis
 
 # Link
 avr-gcc $CFLAGS \
@@ -31,6 +33,7 @@ firmware/matrix_right.o \
 firmware/matrix_left.o \
 contrib/usb_keyboard.o \
 contrib/twimaster.o \
+contrib/millis.o \
 -o firmware/firmware.elf
 
 # Translate

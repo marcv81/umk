@@ -6,9 +6,22 @@
 #include "matrix_left.h"
 #include "usb_keyboard.h"
 #include "i2cmaster.h"
+#include "millis.h"
 
-uint8_t digits[] = { KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5 };
+uint8_t digits[] = { KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9 };
 uint8_t letters[] = { KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N };
+
+void debug_decimal(uint16_t value)
+{
+    char buffer[10];
+    itoa(value, buffer, 10);
+    for (uint8_t i=0; i<10; i++)
+    {
+        if (buffer[i] == 0) break;
+        usb_keyboard_press(digits[buffer[i] - '0'], 0);
+        _delay_ms(50);
+    }
+}
 
 // Scan the matrix and type debug data over the USB keyboard
 void test_matrix()
@@ -41,16 +54,24 @@ void test_matrix()
 
 int main()
 {
+    millis_t start, stop;
+
     // Bump the frequency to 16Mhz
     clock_prescale_set(clock_div_1);
 
     led_init();
+    millis_init();
 
     i2c_init();
 
     usb_init();
-    while (!usb_configured()) /* wait */ ;
+    while (!usb_configured());
+
+    // Should type 1000, more or less
+    start = millis_get();
     _delay_ms(1000);
+    stop = millis_get();
+    debug_decimal(stop - start);
 
     matrix_right_init();
     matrix_left_init();
@@ -68,6 +89,12 @@ int main()
 
     while(1)
     {
-        test_matrix();
+        start = millis_get();
+        for (uint16_t i=0; i<1000; i++)
+        {
+            test_matrix();
+        }
+        stop = millis_get();
+        debug_decimal(stop - start);
     }
 }
