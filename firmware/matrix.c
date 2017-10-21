@@ -13,7 +13,7 @@ void matrix_init()
 
 // Update the rows for the specified column
 // Return whether the matrix was updated or not
-uint8_t matrix_update_rows(uint8_t rows, uint8_t column)
+static uint8_t update_rows(uint8_t rows, uint8_t column)
 {
     uint8_t updated = 0;
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
@@ -41,8 +41,8 @@ uint8_t matrix_scan()
         matrix_left_select_column(left_column);
         matrix_right_select_column(right_column);
         // Read the rows and update the matrix
-        updated |= matrix_update_rows(matrix_left_read_rows(), left_column);
-        updated |= matrix_update_rows(matrix_right_read_rows(), right_column);
+        updated |= update_rows(matrix_left_read_rows(), left_column);
+        updated |= update_rows(matrix_right_read_rows(), right_column);
     }
     return updated;
 }

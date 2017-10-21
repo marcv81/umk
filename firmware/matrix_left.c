@@ -21,7 +21,7 @@
 #define MCP23018_GPIOA   0x12
 #define MCP23018_GPIOB   0x13
 
-void mcp23018_write(uint8_t address, uint8_t data)
+static void mcp23018_write(uint8_t address, uint8_t data)
 {
     i2c_start(MCP23018_ADDR | I2C_WRITE);
     i2c_write(address);
@@ -29,7 +29,7 @@ void mcp23018_write(uint8_t address, uint8_t data)
     i2c_stop();
 }
 
-uint8_t mcp23018_read(uint8_t address)
+static uint8_t mcp23018_read(uint8_t address)
 {
     i2c_start(MCP23018_ADDR | I2C_WRITE);
     i2c_write(address);
@@ -39,7 +39,7 @@ uint8_t mcp23018_read(uint8_t address)
     return data;
 }
 
-void matrix_left_init_columns()
+static void init_columns()
 {
     // Disable the pull-ups
     mcp23018_write(MCP23018_GPPUA, 0b00000000);
@@ -49,7 +49,7 @@ void matrix_left_init_columns()
     mcp23018_write(MCP23018_GPIOA, 0b11111111);
 }
 
-void matrix_left_init_rows()
+static void init_rows()
 {
     // Enable the pull-ups
     mcp23018_write(MCP23018_GPPUB, 0b11111111);
@@ -59,8 +59,8 @@ void matrix_left_init_rows()
 
 void matrix_left_init()
 {
-    matrix_left_init_columns();
-    matrix_left_init_rows();
+    init_columns();
+    init_rows();
 }
 
 void matrix_left_select_column(uint8_t column)

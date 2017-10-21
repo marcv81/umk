@@ -8,7 +8,7 @@
 // Row:    0   1   2   3   4   5
 // Pin:    F7  F6  F5  F4  F1  F0
 
-void matrix_right_init_columns()
+static void init_columns()
 {
     // Set the direction to input (DDR=0)
     DDRB &= 0b11110000;
@@ -20,7 +20,7 @@ void matrix_right_init_columns()
     PORTC &= 0b10111111;
 }
 
-void matrix_right_init_rows()
+static void init_rows()
 {
     // Set the direction to input (DDR=0)
     DDRF &= 0b00001100;
@@ -30,8 +30,8 @@ void matrix_right_init_rows()
 
 void matrix_right_init()
 {
-    matrix_right_init_columns();
-    matrix_right_init_rows();
+    init_columns();
+    init_rows();
 }
 
 void matrix_right_select_column(uint8_t column)
