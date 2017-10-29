@@ -12,28 +12,18 @@ void matrix_init()
 }
 
 // Update the rows for the specified column
-// Return whether the matrix was updated or not
-static uint8_t update_rows(uint8_t rows, uint8_t column)
+static void update_rows(uint8_t rows, uint8_t column)
 {
-    uint8_t updated = 0;
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
     {
-        uint8_t pressed = (rows & (1 << row)) != 0;
-        if (matrix.array[row][column] != pressed)
-        {
-            updated = 1;
-            matrix.array[row][column] = pressed;
-        }
+        matrix.array[row][column] = (rows & (1 << row)) != 0;
     }
-    return updated;
 }
 
-// Scan the entire matrix
-// Return whether the matrix was updated or not
+// Update the entire matrix
 // Interleave left and right matrix scans
-uint8_t matrix_scan()
+void matrix_update()
 {
-    uint8_t updated = 0;
     for (uint8_t left_column=0; left_column<(MATRIX_COLUMNS/2); left_column++)
     {
         uint8_t right_column = MATRIX_COLUMNS - left_column - 1;
@@ -41,8 +31,7 @@ uint8_t matrix_scan()
         matrix_left_select_column(left_column);
         matrix_right_select_column(right_column);
         // Read the rows and update the matrix
-        updated |= update_rows(matrix_left_read_rows(), left_column);
-        updated |= update_rows(matrix_right_read_rows(), right_column);
+        update_rows(matrix_left_read_rows(), left_column);
+        update_rows(matrix_right_read_rows(), right_column);
     }
-    return updated;
 }
