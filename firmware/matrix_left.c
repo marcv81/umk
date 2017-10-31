@@ -34,7 +34,7 @@ static uint8_t mcp23018_read(uint8_t address)
     i2c_start(MCP23018_ADDR | I2C_WRITE);
     i2c_write(address);
     i2c_start(MCP23018_ADDR | I2C_READ);
-    uint8_t data = i2c_readAck();
+    uint8_t data = i2c_readNak();
     i2c_stop();
     return data;
 }
@@ -42,19 +42,19 @@ static uint8_t mcp23018_read(uint8_t address)
 static void init_columns()
 {
     // Disable the pull-ups
-    mcp23018_write(MCP23018_GPPUA, 0b00000000);
+    mcp23018_write(MCP23018_GPPUA, 0b00000000); // default 0b00000000
     // Set the direction to output
-    mcp23018_write(MCP23018_IODIRA, 0b00000000);
+    mcp23018_write(MCP23018_IODIRA, 0b00000000); // default 0b11111111
     // Set the output to hi-Z
-    mcp23018_write(MCP23018_GPIOA, 0b11111111);
+    mcp23018_write(MCP23018_GPIOA, 0b11111111); // default 0b00000000
 }
 
 static void init_rows()
 {
     // Enable the pull-ups
-    mcp23018_write(MCP23018_GPPUB, 0b11111111);
+    mcp23018_write(MCP23018_GPPUB, 0b11111111); // default 0b00000000
     // Set the direction to input
-    mcp23018_write(MCP23018_IODIRB, 0b11111111);
+    mcp23018_write(MCP23018_IODIRB, 0b11111111); // default 0b11111111
 }
 
 void matrix_left_init()
