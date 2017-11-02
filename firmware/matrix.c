@@ -1,15 +1,16 @@
 #include "matrix.h"
 
+#include "config.h"
 #include "matrix_right.h"
 #include "matrix_left.h"
+#include "debounce.h"
 
-// Key states maintained less than N cycles are ignored
-// To define N set the N least significant bits of DEBOUNCE_MASK
-#define DEBOUNCE_MASK 0b00011111 // N = 5
-
-matrix_t matrix;
-
-static matrix_t history;
+static union
+{
+    bool list[MATRIX_KEYS];
+    bool array[MATRIX_ROWS][MATRIX_COLUMNS];
+}
+pressed;
 
 void matrix_init()
 {
@@ -22,22 +23,15 @@ static void update_rows(uint8_t rows, uint8_t column)
 {
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
     {
-        // Accumulate the history: left shift the history and set
-        // the least significant bit according to the current state
-        uint8_t pressed = (rows & (1 << row)) != 0;
-        history.array[row][column] <<= 1;
-        history.array[row][column] |= pressed;
-
-        // Check the history during the N past cycles
-        switch (history.array[row][column] & DEBOUNCE_MASK)
+        bool key_pressed = (rows & (1 << row));
+        debounce_update(row, column, key_pressed);
+        switch(debounce_state(row, column))
         {
-            // The key was consistently released
-            case 0:
-                matrix.array[row][column] = 0;
+            case debounce_released:
+                pressed.array[row][column] = false;
                 break;
-            // The key was consistently pressed
-            case DEBOUNCE_MASK:
-                matrix.array[row][column] = 1;
+            case debounce_pressed:
+                pressed.array[row][column] = true;
                 break;
         }
     }
@@ -57,4 +51,10 @@ void matrix_update()
         update_rows(matrix_left_read_rows(), left_column);
         update_rows(matrix_right_read_rows(), right_column);
     }
+}
+
+// Return whether a key is pressed or not
+bool matrix_pressed(uint8_t key)
+{
+    return pressed.list[key];
 }

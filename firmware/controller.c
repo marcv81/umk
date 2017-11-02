@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include "config.h"
 #include "matrix.h"
 #include "usb_keyboard.h"
 
@@ -13,18 +14,19 @@
 #define LEFT_GUI 14
 #define RIGHT_GUI 27
 
-struct
+static struct
 {
     uint8_t keys[6];
     uint8_t modifiers;
-} controller =
+}
+controller =
 {
     .keys = { 0, 0, 0, 0, 0, 0 },
     .modifiers = 0,
 };
 
 // Keys layout
-static const uint8_t scancodes[84] =
+static const uint8_t scancodes[MATRIX_KEYS] =
 {
     0, 0, KEY_TAB, KEY_SPACE, 0, 0, 0, 0, 0, 0, KEY_BACKSPACE, KEY_ENTER, 0, 0,
     0, KEY_TILDE, KEY_BACKSLASH, KEY_LEFT, KEY_RIGHT, 0, 0, 0, 0, KEY_DOWN, KEY_UP, KEY_LEFT_BRACE, KEY_RIGHT_BRACE, 0,
@@ -51,7 +53,7 @@ static void update_keys()
         if (scancodes[i] == 0) continue;
 
         // Skip the keys which are not pressed
-        if (!matrix.list[i]) continue;
+        if (!matrix_pressed(i)) continue;
 
         if (keys_index < 6)
         {
@@ -67,19 +69,19 @@ static void update_modifiers()
     controller.modifiers = 0;
 
     // Update control
-    if (matrix.list[LEFT_CTRL] || matrix.list[RIGHT_CTRL])
+    if (matrix_pressed(LEFT_CTRL) || matrix_pressed(RIGHT_CTRL))
     {
         controller.modifiers |= KEY_CTRL;
     }
 
     // Update shift
-    if (matrix.list[LEFT_SHIFT] || matrix.list[RIGHT_SHIFT])
+    if (matrix_pressed(LEFT_SHIFT) || matrix_pressed(RIGHT_SHIFT))
     {
         controller.modifiers |= KEY_SHIFT;
     }
 
     // Update GUI
-    if (matrix.list[LEFT_GUI] || matrix.list[RIGHT_GUI])
+    if (matrix_pressed(LEFT_GUI) || matrix_pressed(RIGHT_GUI))
     {
         controller.modifiers |= KEY_GUI;
     }

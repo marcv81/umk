@@ -2,22 +2,10 @@
 #define MATRIX_H
 
 #include <stdint.h>
-
-// Matrix size
-#define MATRIX_ROWS 6
-#define MATRIX_COLUMNS 14
-#define MATRIX_KEYS (MATRIX_ROWS * MATRIX_COLUMNS)
-
-// Type allowing both list and array indexing
-typedef union
-{
-    uint8_t list[MATRIX_KEYS];
-    uint8_t array[MATRIX_ROWS][MATRIX_COLUMNS];
-} matrix_t;
-
-extern matrix_t matrix;
+#include <stdbool.h>
 
 void matrix_init();
 void matrix_update();
+bool matrix_pressed(uint8_t key);
 
 #endif // MATRIX_H

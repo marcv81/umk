@@ -22,6 +22,7 @@ compile firmware/led
 compile firmware/matrix_right
 compile firmware/matrix_left
 compile firmware/matrix
+compile firmware/debounce
 compile firmware/controller
 compile contrib/usb_keyboard
 compile contrib/twimaster
@@ -34,6 +35,7 @@ firmware/led.o \
 firmware/matrix_right.o \
 firmware/matrix_left.o \
 firmware/matrix.o \
+firmware/debounce.o \
 firmware/controller.o \
 contrib/usb_keyboard.o \
 contrib/twimaster.o \
