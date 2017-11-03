@@ -1,22 +1,15 @@
-#ifndef usb_serial_h__
-#define usb_serial_h__
+#ifndef USB_KEYBOARD_H
+#define USB_KEYBOARD_H
 
 #include <stdint.h>
 
 void usb_init(void);                    // initialize everything
 uint8_t usb_configured(void);           // is the USB port configured
 
-int8_t usb_keyboard_press(uint8_t key, uint8_t modifier);
 int8_t usb_keyboard_send(void);
 extern uint8_t keyboard_modifier_keys;
 extern uint8_t keyboard_keys[6];
 extern volatile uint8_t keyboard_leds;
-
-// This file does not include the HID debug functions, so these empty
-// macros replace them with nothing, so users can compile code that
-// has calls to these functions.
-#define usb_debug_putchar(c)
-#define usb_debug_flush_output()
 
 #define KEY_CTRL        0x01
 #define KEY_SHIFT       0x02
@@ -128,4 +121,4 @@ extern volatile uint8_t keyboard_leds;
 #define KEYPAD_0        98
 #define KEYPAD_PERIOD   99
 
-#endif
+#endif // USB_KEYBOARD_H

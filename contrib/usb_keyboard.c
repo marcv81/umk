@@ -24,7 +24,6 @@
 // Version 1.0: Initial Release
 // Version 1.1: Add support for Teensy 2.0
 
-#define USB_SERIAL_PRIVATE_INCLUDE
 #include "usb_keyboard.h"
 
 #include <avr/io.h>
@@ -353,20 +352,6 @@ uint8_t usb_configured(void)
         return usb_configuration;
 }
 
-// perform a single keystroke
-int8_t usb_keyboard_press(uint8_t key, uint8_t modifier)
-{
-        int8_t r;
-
-        keyboard_modifier_keys = modifier;
-        keyboard_keys[0] = key;
-        r = usb_keyboard_send();
-        if (r) return r;
-        keyboard_modifier_keys = 0;
-        keyboard_keys[0] = 0;
-        return usb_keyboard_send();
-}
-
 // send the contents of keyboard_keys and keyboard_modifier_keys
 int8_t usb_keyboard_send(void)
 {
@@ -647,4 +632,3 @@ ISR(USB_COM_vect)
         }
         UECONX = (1<<STALLRQ) | (1<<EPEN);      // stall
 }
-
