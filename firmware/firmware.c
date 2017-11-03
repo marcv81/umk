@@ -12,24 +12,31 @@ int main()
     // Bump the frequency to 16Mhz
     clock_prescale_set(clock_div_1);
 
+    // Initialize the LEDs
     led_init();
-    led_1(1);
-    led_2(1);
-    led_3(1);
-    _delay_ms(200);
 
+    // LEDs on
+    led_1(true);
+    _delay_ms(100);
+    led_2(true);
+    _delay_ms(100);
+    led_3(true);
+
+    // Initialize everything else
     i2c_init();
-    led_1(0);
-
     matrix_init();
-    led_2(0);
-
     usb_init();
     while (!usb_configured());
-    _delay_ms(1000);
-    led_3(0);
 
-    while(1)
+    // LEDs off
+    led_1(false);
+    _delay_ms(100);
+    led_2(false);
+    _delay_ms(100);
+    led_3(false);
+
+    // Main loop
+    while(true)
     {
         matrix_update();
         controller_update();

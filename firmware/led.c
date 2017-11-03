@@ -10,21 +10,21 @@ void led_init()
     PORTB &= 0b00011111;
 }
 
-void led_1(uint8_t on)
+void led_1(bool on)
 {
     // Update pin B5
     if (on) PORTB |= 0b00100000;
     else PORTB &= 0b11011111;
 }
 
-void led_2(uint8_t on)
+void led_2(bool on)
 {
     // Update pin B6
     if (on) PORTB |= 0b01000000;
     else PORTB &= 0b10111111;
 }
 
-void led_3(uint8_t on)
+void led_3(bool on)
 {
     // Update pin B7
     if (on) PORTB |= 0b10000000;

@@ -1,11 +1,11 @@
 #ifndef LED_H
 #define LED_H
 
-#include <stdint.h>
+#include <stdbool.h>
 
 void led_init();
-void led_1(uint8_t on);
-void led_2(uint8_t on);
-void led_3(uint8_t on);
+void led_1(bool on);
+void led_2(bool on);
+void led_3(bool on);
 
 #endif // LED_H
