@@ -14,16 +14,7 @@
 #define LEFT_GUI 14
 #define RIGHT_GUI 27
 
-static struct
-{
-    uint8_t keys[6];
-    uint8_t modifiers;
-}
-controller =
-{
-    .keys = { 0, 0, 0, 0, 0, 0 },
-    .modifiers = 0,
-};
+static usb_keyboard_report_t report;
 
 // Keys layout
 static const uint8_t scancodes[MATRIX_KEYS] =
@@ -42,7 +33,7 @@ static void update_keys()
     // Reset the keys
     for (uint8_t i=0; i<6; i++)
     {
-        controller.keys[i] = 0;
+        report.keys[i] = 0;
     }
 
     // Accumulate at most 6 scancodes
@@ -57,7 +48,7 @@ static void update_keys()
 
         if (keys_index < 6)
         {
-            controller.keys[keys_index++] = scancodes[i];
+            report.keys[keys_index++] = scancodes[i];
         }
     }
 }
@@ -66,24 +57,24 @@ static void update_keys()
 static void update_modifiers()
 {
     // Reset the modifiers
-    controller.modifiers = 0;
+    report.modifiers = 0;
 
     // Update control
     if (matrix_pressed(LEFT_CTRL) || matrix_pressed(RIGHT_CTRL))
     {
-        controller.modifiers |= KEY_CTRL;
+        report.modifiers |= KEY_CTRL;
     }
 
     // Update shift
     if (matrix_pressed(LEFT_SHIFT) || matrix_pressed(RIGHT_SHIFT))
     {
-        controller.modifiers |= KEY_SHIFT;
+        report.modifiers |= KEY_SHIFT;
     }
 
     // Update GUI
     if (matrix_pressed(LEFT_GUI) || matrix_pressed(RIGHT_GUI))
     {
-        controller.modifiers |= KEY_GUI;
+        report.modifiers |= KEY_GUI;
     }
 }
 
@@ -95,17 +86,17 @@ void update_usb()
     // Test if the keys changed
     for (uint8_t i=0; i<6; i++)
     {
-        if (controller.keys[i] != keyboard_keys[i])
+        if (report.keys[i] != usb_keyboard_report.keys[i])
         {
-            keyboard_keys[i] = controller.keys[i];
+            usb_keyboard_report.keys[i] = report.keys[i];
             updated = 1;
         }
     }
 
     // Test if the modifiers changed
-    if (controller.modifiers != keyboard_modifier_keys)
+    if (report.modifiers != usb_keyboard_report.modifiers)
     {
-        keyboard_modifier_keys = controller.modifiers;
+        usb_keyboard_report.modifiers = report.modifiers;
         updated = 1;
     }
 

@@ -3,12 +3,18 @@
 
 #include <stdint.h>
 
+typedef struct
+{
+    uint8_t modifiers;
+    uint8_t keys[6];
+}
+usb_keyboard_report_t;
+
 void usb_init(void);                    // initialize everything
 uint8_t usb_configured(void);           // is the USB port configured
 
 int8_t usb_keyboard_send(void);
-extern uint8_t keyboard_modifier_keys;
-extern uint8_t keyboard_keys[6];
+extern usb_keyboard_report_t usb_keyboard_report;
 extern volatile uint8_t keyboard_leds;
 
 #define KEY_CTRL        0x01

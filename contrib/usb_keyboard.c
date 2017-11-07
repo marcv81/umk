@@ -304,13 +304,7 @@ static const struct descriptor_list_struct {
 // zero when we are not configured, non-zero when enumerated
 static volatile uint8_t usb_configuration=0;
 
-// which modifier keys are currently pressed
-// 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
-// 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-uint8_t keyboard_modifier_keys=0;
-
-// which keys are currently pressed, up to 6 keys may be down at once
-uint8_t keyboard_keys[6]={0,0,0,0,0,0};
+usb_keyboard_report_t usb_keyboard_report;
 
 // protocol setting from the host.  We use exactly the same report
 // either way, so this variable only stores the setting since we
@@ -377,11 +371,7 @@ int8_t usb_keyboard_send(void)
                 cli();
                 UENUM = KEYBOARD_ENDPOINT;
         }
-        UEDATX = keyboard_modifier_keys;
-        UEDATX = 0;
-        for (i=0; i<6; i++) {
-                UEDATX = keyboard_keys[i];
-        }
+        send_keyboard_report(&usb_keyboard_report);
         UEINTX = 0x3A;
         keyboard_idle_count = 0;
         SREG = intr_state;
@@ -419,11 +409,7 @@ ISR(USB_GEN_vect)
                                 keyboard_idle_count++;
                                 if (keyboard_idle_count == keyboard_idle_config) {
                                         keyboard_idle_count = 0;
-                                        UEDATX = keyboard_modifier_keys;
-                                        UEDATX = 0;
-                                        for (i=0; i<6; i++) {
-                                                UEDATX = keyboard_keys[i];
-                                        }
+                                        send_keyboard_report(&usb_keyboard_report);
                                         UEINTX = 0x3A;
                                 }
                         }
@@ -578,11 +564,7 @@ ISR(USB_COM_vect)
                         if (setup_packet.bmRequestType == 0xA1) {
                                 if (setup_packet.bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
-                                        UEDATX = keyboard_modifier_keys;
-                                        UEDATX = 0;
-                                        for (i=0; i<6; i++) {
-                                                UEDATX = keyboard_keys[i];
-                                        }
+                                        send_keyboard_report(&usb_keyboard_report);
                                         usb_send_in();
                                         return;
                                 }
