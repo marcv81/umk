@@ -18,6 +18,18 @@ static inline void send8(uint8_t data)
     UEDATX = data;
 }
 
+static void init_endpoint(uint8_t endpoint, uint8_t cfg0, uint8_t cfg1)
+{
+    // Select endpoint
+    UENUM = endpoint & 0b00000111;
+    // Enable endpoint
+    UECONX = 1;
+    // Configure endpoint
+    // See ATmega32U4 datasheet: 22.18.2 USB Device Endpoint Registers
+    UECFG0X = cfg0;
+    UECFG1X = cfg1;
+}
+
 typedef struct
 {
     uint8_t bmRequestType;

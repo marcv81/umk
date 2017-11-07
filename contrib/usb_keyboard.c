@@ -136,16 +136,9 @@
 #define ENDPOINT0_SIZE          32
 
 #define KEYBOARD_INTERFACE      0
-#define KEYBOARD_ENDPOINT       3
+#define KEYBOARD_ENDPOINT       1
 #define KEYBOARD_SIZE           8
 #define KEYBOARD_BUFFER         EP_DOUBLE_BUFFER
-
-static const uint8_t PROGMEM endpoint_config_table[] = {
-        0,
-        0,
-        1, EP_TYPE_INTERRUPT_IN,  EP_SIZE(KEYBOARD_SIZE) | KEYBOARD_BUFFER,
-        0
-};
 
 /**************************************************************************
  *
@@ -395,10 +388,7 @@ ISR(USB_GEN_vect)
         intbits = UDINT;
         UDINT = 0;
         if (intbits & (1<<EORSTI)) {
-                UENUM = 0;
-                UECONX = 1;
-                UECFG0X = EP_TYPE_CONTROL;
-                UECFG1X = EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER;
+                init_endpoint(0, EP_TYPE_CONTROL, EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER);
                 UEIENX = (1<<RXSTPE);
                 usb_configuration = 0;
         }
@@ -506,17 +496,8 @@ ISR(USB_COM_vect)
                 if (setup_packet.bRequest == SET_CONFIGURATION && setup_packet.bmRequestType == 0) {
                         usb_configuration = setup_packet.wValue;
                         usb_send_in();
-                        cfg = endpoint_config_table;
-                        for (i=1; i<5; i++) {
-                                UENUM = i;
-                                en = pgm_read_byte(cfg++);
-                                UECONX = en;
-                                if (en) {
-                                        UECFG0X = pgm_read_byte(cfg++);
-                                        UECFG1X = pgm_read_byte(cfg++);
-                                }
-                        }
-                        UERST = 0x1E;
+                        init_endpoint(1, EP_TYPE_INTERRUPT_IN, EP_SIZE(KEYBOARD_SIZE) | KEYBOARD_BUFFER);
+                        UERST = 0b00000010;
                         UERST = 0;
                         return;
                 }
