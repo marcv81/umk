@@ -26,6 +26,8 @@
 
 #include "usb_keyboard.h"
 
+#include "usb/core.c"
+
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
@@ -457,11 +459,7 @@ ISR(USB_COM_vect)
         const uint8_t *list;
         const uint8_t *cfg;
         uint8_t i, n, len, en;
-        uint8_t bmRequestType;
-        uint8_t bRequest;
-        uint16_t wValue;
-        uint16_t wIndex;
-        uint16_t wLength;
+        setup_packet_t setup_packet;
         uint16_t desc_val;
         const uint8_t *desc_addr;
         uint8_t desc_length;
@@ -469,16 +467,9 @@ ISR(USB_COM_vect)
         UENUM = 0;
         intbits = UEINTX;
         if (intbits & (1<<RXSTPI)) {
-                bmRequestType = UEDATX;
-                bRequest = UEDATX;
-                wValue = UEDATX;
-                wValue |= (UEDATX << 8);
-                wIndex = UEDATX;
-                wIndex |= (UEDATX << 8);
-                wLength = UEDATX;
-                wLength |= (UEDATX << 8);
+                recv_setup_packet(&setup_packet);
                 UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
-                if (bRequest == GET_DESCRIPTOR) {
+                if (setup_packet.bRequest == GET_DESCRIPTOR) {
                         list = (const uint8_t *)descriptor_list;
                         for (i=0; ; i++) {
                                 if (i >= NUM_DESC_LIST) {
@@ -486,13 +477,13 @@ ISR(USB_COM_vect)
                                         return;
                                 }
                                 desc_val = pgm_read_word(list);
-                                if (desc_val != wValue) {
+                                if (desc_val != setup_packet.wValue) {
                                         list += sizeof(struct descriptor_list_struct);
                                         continue;
                                 }
                                 list += 2;
                                 desc_val = pgm_read_word(list);
-                                if (desc_val != wIndex) {
+                                if (desc_val != setup_packet.wIndex) {
                                         list += sizeof(struct descriptor_list_struct)-2;
                                         continue;
                                 }
@@ -502,7 +493,7 @@ ISR(USB_COM_vect)
                                 desc_length = pgm_read_byte(list);
                                 break;
                         }
-                        len = (wLength < 256) ? wLength : 255;
+                        len = (setup_packet.wLength < 256) ? setup_packet.wLength : 255;
                         if (len > desc_length) len = desc_length;
                         do {
                                 // wait for host ready for IN packet
@@ -520,14 +511,14 @@ ISR(USB_COM_vect)
                         } while (len || n == ENDPOINT0_SIZE);
                         return;
                 }
-                if (bRequest == SET_ADDRESS) {
+                if (setup_packet.bRequest == SET_ADDRESS) {
                         usb_send_in();
                         usb_wait_in_ready();
-                        UDADDR = wValue | (1<<ADDEN);
+                        UDADDR = setup_packet.wValue | (1<<ADDEN);
                         return;
                 }
-                if (bRequest == SET_CONFIGURATION && bmRequestType == 0) {
-                        usb_configuration = wValue;
+                if (setup_packet.bRequest == SET_CONFIGURATION && setup_packet.bmRequestType == 0) {
+                        usb_configuration = setup_packet.wValue;
                         usb_send_in();
                         cfg = endpoint_config_table;
                         for (i=1; i<5; i++) {
@@ -543,19 +534,19 @@ ISR(USB_COM_vect)
                         UERST = 0;
                         return;
                 }
-                if (bRequest == GET_CONFIGURATION && bmRequestType == 0x80) {
+                if (setup_packet.bRequest == GET_CONFIGURATION && setup_packet.bmRequestType == 0x80) {
                         usb_wait_in_ready();
                         UEDATX = usb_configuration;
                         usb_send_in();
                         return;
                 }
 
-                if (bRequest == GET_STATUS) {
+                if (setup_packet.bRequest == GET_STATUS) {
                         usb_wait_in_ready();
                         i = 0;
                         #ifdef SUPPORT_ENDPOINT_HALT
-                        if (bmRequestType == 0x82) {
-                                UENUM = wIndex;
+                        if (setup_packet.bmRequestType == 0x82) {
+                                UENUM = setup_packet.wIndex;
                                 if (UECONX & (1<<STALLRQ)) i = 1;
                                 UENUM = 0;
                         }
@@ -566,13 +557,13 @@ ISR(USB_COM_vect)
                         return;
                 }
                 #ifdef SUPPORT_ENDPOINT_HALT
-                if ((bRequest == CLEAR_FEATURE || bRequest == SET_FEATURE)
-                  && bmRequestType == 0x02 && wValue == 0) {
-                        i = wIndex & 0x7F;
+                if ((setup_packet.bRequest == CLEAR_FEATURE || setup_packet.bRequest == SET_FEATURE)
+                  && setup_packet.bmRequestType == 0x02 && setup_packet.wValue == 0) {
+                        i = setup_packet.wIndex & 0x7F;
                         if (i >= 1 && i <= MAX_ENDPOINT) {
                                 usb_send_in();
                                 UENUM = i;
-                                if (bRequest == SET_FEATURE) {
+                                if (setup_packet.bRequest == SET_FEATURE) {
                                         UECONX = (1<<STALLRQ)|(1<<EPEN);
                                 } else {
                                         UECONX = (1<<STALLRQC)|(1<<RSTDT)|(1<<EPEN);
@@ -583,9 +574,9 @@ ISR(USB_COM_vect)
                         }
                 }
                 #endif
-                if (wIndex == KEYBOARD_INTERFACE) {
-                        if (bmRequestType == 0xA1) {
-                                if (bRequest == HID_GET_REPORT) {
+                if (setup_packet.wIndex == KEYBOARD_INTERFACE) {
+                        if (setup_packet.bmRequestType == 0xA1) {
+                                if (setup_packet.bRequest == HID_GET_REPORT) {
                                         usb_wait_in_ready();
                                         UEDATX = keyboard_modifier_keys;
                                         UEDATX = 0;
@@ -595,35 +586,35 @@ ISR(USB_COM_vect)
                                         usb_send_in();
                                         return;
                                 }
-                                if (bRequest == HID_GET_IDLE) {
+                                if (setup_packet.bRequest == HID_GET_IDLE) {
                                         usb_wait_in_ready();
                                         UEDATX = keyboard_idle_config;
                                         usb_send_in();
                                         return;
                                 }
-                                if (bRequest == HID_GET_PROTOCOL) {
+                                if (setup_packet.bRequest == HID_GET_PROTOCOL) {
                                         usb_wait_in_ready();
                                         UEDATX = keyboard_protocol;
                                         usb_send_in();
                                         return;
                                 }
                         }
-                        if (bmRequestType == 0x21) {
-                                if (bRequest == HID_SET_REPORT) {
+                        if (setup_packet.bmRequestType == 0x21) {
+                                if (setup_packet.bRequest == HID_SET_REPORT) {
                                         usb_wait_receive_out();
                                         keyboard_leds = UEDATX;
                                         usb_ack_out();
                                         usb_send_in();
                                         return;
                                 }
-                                if (bRequest == HID_SET_IDLE) {
-                                        keyboard_idle_config = (wValue >> 8);
+                                if (setup_packet.bRequest == HID_SET_IDLE) {
+                                        keyboard_idle_config = (setup_packet.wValue >> 8);
                                         keyboard_idle_count = 0;
                                         usb_send_in();
                                         return;
                                 }
-                                if (bRequest == HID_SET_PROTOCOL) {
-                                        keyboard_protocol = wValue;
+                                if (setup_packet.bRequest == HID_SET_PROTOCOL) {
+                                        keyboard_protocol = setup_packet.wValue;
                                         usb_send_in();
                                         return;
                                 }
