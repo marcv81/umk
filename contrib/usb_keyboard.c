@@ -38,10 +38,6 @@
  *
  **************************************************************************/
 
-// You can change these to give your code its own name.
-#define STR_MANUFACTURER        L"MfgName"
-#define STR_PRODUCT             L"Keyboard"
-
 // Mac OS-X and Linux automatically load the correct drivers.  On
 // Windows, even though the driver is supplied by Microsoft, an
 // INF file is needed to load the driver.  These numbers need to
@@ -163,8 +159,8 @@ static const uint8_t PROGMEM device_descriptor[] = {
         LSB(VENDOR_ID), MSB(VENDOR_ID),         // idVendor
         LSB(PRODUCT_ID), MSB(PRODUCT_ID),       // idProduct
         0x00, 0x01,                             // bcdDevice
-        1,                                      // iManufacturer
-        2,                                      // iProduct
+        0,                                      // iManufacturer
+        0,                                      // iProduct
         0,                                      // iSerialNumber
         1                                       // bNumConfigurations
 };
@@ -246,30 +242,6 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
         1                                       // bInterval
 };
 
-// If you're desperate for a little extra code memory, these strings
-// can be completely removed if iManufacturer, iProduct, iSerialNumber
-// in the device desciptor are changed to zeros.
-struct usb_string_descriptor_struct {
-        uint8_t bLength;
-        uint8_t bDescriptorType;
-        int16_t wString[];
-};
-static const struct usb_string_descriptor_struct PROGMEM string0 = {
-        4,
-        3,
-        {0x0409}
-};
-static const struct usb_string_descriptor_struct PROGMEM string1 = {
-        sizeof(STR_MANUFACTURER),
-        3,
-        STR_MANUFACTURER
-};
-static const struct usb_string_descriptor_struct PROGMEM string2 = {
-        sizeof(STR_PRODUCT),
-        3,
-        STR_PRODUCT
-};
-
 // This table defines which descriptor data is sent for each specific
 // request from the host (in wValue and wIndex).
 static const struct descriptor_list_struct {
@@ -282,9 +254,6 @@ static const struct descriptor_list_struct {
         {0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
         {0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
         {0x2100, KEYBOARD_INTERFACE, config1_descriptor+KEYBOARD_HID_DESC_OFFSET, 9},
-        {0x0300, 0x0000, (const uint8_t *)&string0, 4},
-        {0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
-        {0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)}
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
 
