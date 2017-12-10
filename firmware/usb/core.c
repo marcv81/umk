@@ -1,5 +1,8 @@
 #include <avr/io.h>
 
+#define VENDOR_ID 0x046a
+#define PRODUCT_ID 0x0001
+
 static inline uint8_t recv8()
 {
     return UEDATX;

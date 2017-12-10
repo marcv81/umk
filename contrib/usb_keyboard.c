@@ -38,13 +38,6 @@
  *
  **************************************************************************/
 
-// Mac OS-X and Linux automatically load the correct drivers.  On
-// Windows, even though the driver is supplied by Microsoft, an
-// INF file is needed to load the driver.  These numbers need to
-// match the INF file.
-#define VENDOR_ID               0x16C0
-#define PRODUCT_ID              0x047C
-
 // USB devices are supposed to implment a halt feature, which is
 // rarely (if ever) used.  If you comment this line out, the halt
 // code will be removed, saving 102 bytes of space (gcc 4.3.0).
