@@ -34,19 +34,6 @@
 
 /**************************************************************************
  *
- *  Configurable Options
- *
- **************************************************************************/
-
-// USB devices are supposed to implment a halt feature, which is
-// rarely (if ever) used.  If you comment this line out, the halt
-// code will be removed, saving 102 bytes of space (gcc 4.3.0).
-// This is not strictly USB compliant, but works with all major
-// operating systems.
-#define SUPPORT_ENDPOINT_HALT
-
-/**************************************************************************
- *
  *  Preprocessor macros
  *
  **************************************************************************/
@@ -473,36 +460,11 @@ ISR(USB_COM_vect)
                 if (setup_packet.bRequest == GET_STATUS) {
                         usb_wait_in_ready();
                         i = 0;
-                        #ifdef SUPPORT_ENDPOINT_HALT
-                        if (setup_packet.bmRequestType == 0x82) {
-                                UENUM = setup_packet.wIndex;
-                                if (UECONX & (1<<STALLRQ)) i = 1;
-                                UENUM = 0;
-                        }
-                        #endif
                         UEDATX = i;
                         UEDATX = 0;
                         usb_send_in();
                         return;
                 }
-                #ifdef SUPPORT_ENDPOINT_HALT
-                if ((setup_packet.bRequest == CLEAR_FEATURE || setup_packet.bRequest == SET_FEATURE)
-                  && setup_packet.bmRequestType == 0x02 && setup_packet.wValue == 0) {
-                        i = setup_packet.wIndex & 0x7F;
-                        if (i >= 1 && i <= MAX_ENDPOINT) {
-                                usb_send_in();
-                                UENUM = i;
-                                if (setup_packet.bRequest == SET_FEATURE) {
-                                        UECONX = (1<<STALLRQ)|(1<<EPEN);
-                                } else {
-                                        UECONX = (1<<STALLRQC)|(1<<RSTDT)|(1<<EPEN);
-                                        UERST = (1 << i);
-                                        UERST = 0;
-                                }
-                                return;
-                        }
-                }
-                #endif
                 if (setup_packet.wIndex == KEYBOARD_INTERFACE) {
                         if (setup_packet.bmRequestType == 0xA1) {
                                 if (setup_packet.bRequest == HID_GET_REPORT) {
