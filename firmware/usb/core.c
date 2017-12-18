@@ -3,6 +3,10 @@
 #define VENDOR_ID 0x046a
 #define PRODUCT_ID 0x0001
 
+#define read_bit(r, b) (r & (1 << b))
+#define set_bit(r, b) (r |= (1 << b))
+#define clear_bit(r, b) (r &= ~(1 << b))
+
 static inline uint8_t recv8()
 {
     return UEDATX;
