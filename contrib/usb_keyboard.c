@@ -216,9 +216,6 @@ static const uint8_t PROGMEM descriptors[] = {
  *
  **************************************************************************/
 
-// zero when we are not configured, non-zero when enumerated
-static uint8_t usb_configuration=0;
-
 usb_keyboard_report_t usb_keyboard_report;
 
 static bool update_requested = false;
@@ -238,7 +235,6 @@ void usb_init(void)
         while (!(PLLCSR & (1<<PLOCK))) ;        // wait for PLL lock
         USB_CONFIG();                           // start USB clock
         UDCON = 0;                              // enable attach resistor
-        usb_configuration = 0;
 }
 
 // send the contents of keyboard_keys and keyboard_modifier_keys
@@ -247,60 +243,6 @@ void usb_keyboard_send()
         update_requested = true;
 }
 
-/**************************************************************************
- *
- *  Private Functions - not intended for general user consumption....
- *
- **************************************************************************/
-
-// Misc functions to wait for ready and send/receive packets
-static inline void usb_wait_in_ready(void)
-{
-        while (!(UEINTX & (1<<TXINI))) ;
-}
-static inline void usb_send_in(void)
-{
-        UEINTX = ~(1<<TXINI);
-}
-static inline void usb_wait_receive_out(void)
-{
-        while (!(UEINTX & (1<<RXOUTI))) ;
-}
-static inline void usb_ack_out(void)
-{
-        UEINTX = ~(1<<RXOUTI);
-}
-
 #include "usb/descriptors.c"
-
-static void update_endpoint_0()
-{
-        setup_packet_t setup_packet;
-
-        UENUM = 0;
-        if (UEINTX & (1<<RXSTPI)) {
-                recv_setup_packet(&setup_packet);
-                clear_bit(UEINTX, RXSTPI);
-                if (setup_packet.bRequest == GET_DESCRIPTOR) {
-                        descriptor_send_dispatch(&setup_packet);
-                        return;
-                }
-                if (setup_packet.bRequest == SET_ADDRESS) {
-                        usb_send_in();
-                        usb_wait_in_ready();
-                        UDADDR = setup_packet.wValue | (1<<ADDEN);
-                        return;
-                }
-                if (setup_packet.bRequest == SET_CONFIGURATION && setup_packet.bmRequestType == 0) {
-                        usb_configuration = setup_packet.wValue;
-                        usb_send_in();
-                        init_endpoint(1, EP_TYPE_INTERRUPT_IN, EP_SIZE(KEYBOARD_SIZE) | KEYBOARD_BUFFER);
-                        UERST = 0b00000010;
-                        UERST = 0;
-                        return;
-                }
-        }
-        set_bit(UECONX, STALLRQ);
-}
 
 #include "usb/more.c"
