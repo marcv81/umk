@@ -75,18 +75,9 @@
 #endif
 
 // standard control endpoint request types
-#define GET_STATUS                      0
 #define SET_ADDRESS                     5
 #define GET_DESCRIPTOR                  6
-#define GET_CONFIGURATION               8
 #define SET_CONFIGURATION               9
-// HID (human interface device)
-#define HID_GET_REPORT                  1
-#define HID_GET_IDLE                    2
-#define HID_GET_PROTOCOL                3
-#define HID_SET_REPORT                  9
-#define HID_SET_IDLE                    10
-#define HID_SET_PROTOCOL                11
 
 /**************************************************************************
  *
@@ -229,20 +220,12 @@ static volatile uint8_t usb_configuration=0;
 
 usb_keyboard_report_t usb_keyboard_report;
 
-// protocol setting from the host.  We use exactly the same report
-// either way, so this variable only stores the setting since we
-// are required to be able to report which setting is in use.
-static uint8_t keyboard_protocol=1;
-
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
 static uint8_t keyboard_idle_config=125;
 
 // count until idle timeout
 static uint8_t keyboard_idle_count=0;
-
-// 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t keyboard_leds=0;
 
 /**************************************************************************
  *
@@ -387,62 +370,6 @@ ISR(USB_COM_vect)
                         UERST = 0;
                         return;
                 }
-                if (setup_packet.bRequest == GET_CONFIGURATION && setup_packet.bmRequestType == 0x80) {
-                        usb_wait_in_ready();
-                        UEDATX = usb_configuration;
-                        usb_send_in();
-                        return;
-                }
-
-                if (setup_packet.bRequest == GET_STATUS) {
-                        usb_wait_in_ready();
-                        UEDATX = 0;
-                        UEDATX = 0;
-                        usb_send_in();
-                        return;
-                }
-                if (setup_packet.wIndex == KEYBOARD_INTERFACE) {
-                        if (setup_packet.bmRequestType == 0xA1) {
-                                if (setup_packet.bRequest == HID_GET_REPORT) {
-                                        usb_wait_in_ready();
-                                        send_keyboard_report(&usb_keyboard_report);
-                                        usb_send_in();
-                                        return;
-                                }
-                                if (setup_packet.bRequest == HID_GET_IDLE) {
-                                        usb_wait_in_ready();
-                                        UEDATX = keyboard_idle_config;
-                                        usb_send_in();
-                                        return;
-                                }
-                                if (setup_packet.bRequest == HID_GET_PROTOCOL) {
-                                        usb_wait_in_ready();
-                                        UEDATX = keyboard_protocol;
-                                        usb_send_in();
-                                        return;
-                                }
-                        }
-                        if (setup_packet.bmRequestType == 0x21) {
-                                if (setup_packet.bRequest == HID_SET_REPORT) {
-                                        usb_wait_receive_out();
-                                        keyboard_leds = UEDATX;
-                                        usb_ack_out();
-                                        usb_send_in();
-                                        return;
-                                }
-                                if (setup_packet.bRequest == HID_SET_IDLE) {
-                                        keyboard_idle_config = (setup_packet.wValue >> 8);
-                                        keyboard_idle_count = 0;
-                                        usb_send_in();
-                                        return;
-                                }
-                                if (setup_packet.bRequest == HID_SET_PROTOCOL) {
-                                        keyboard_protocol = setup_packet.wValue;
-                                        usb_send_in();
-                                        return;
-                                }
-                        }
-                }
         }
-        UECONX = (1<<STALLRQ) | (1<<EPEN);      // stall
+        set_bit(UECONX, STALLRQ);
 }

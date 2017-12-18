@@ -15,7 +15,6 @@ uint8_t usb_configured(void);           // is the USB port configured
 
 int8_t usb_keyboard_send(void);
 extern usb_keyboard_report_t usb_keyboard_report;
-extern volatile uint8_t keyboard_leds;
 
 #define KEY_CTRL        0x01
 #define KEY_SHIFT       0x02
