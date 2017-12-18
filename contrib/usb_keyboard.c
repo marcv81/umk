@@ -218,21 +218,6 @@ static const uint8_t PROGMEM descriptors[] = {
         0xc0,                // End Collection
 };
 
-// This table defines which descriptor data is sent for each specific
-// request from the host (in wValue and wIndex).
-static const struct descriptor_list_struct {
-        uint16_t        wValue;
-        uint16_t        wIndex;
-        const uint8_t   *addr;
-        uint8_t         length;
-} PROGMEM descriptor_list[] = {
-        {0x0100, 0x0000, descriptors + DESCRIPTOR_OFFSET_DEVICE, DESCRIPTOR_LENGTH_DEVICE},
-        {0x0200, 0x0000, descriptors + DESCRIPTOR_OFFSET_CONFIGURATION, DESCRIPTOR_LENGTH_CONFIGURATION},
-        {0x2200, KEYBOARD_INTERFACE, descriptors + DESCRIPTOR_OFFSET_HID_REPORT, DESCRIPTOR_LENGTH_HID_REPORT},
-        {0x2100, KEYBOARD_INTERFACE, descriptors + DESCRIPTOR_OFFSET_HID_INTERFACE, DESCRIPTOR_LENGTH_HID_INTERFACE},
-};
-#define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
-
 /**************************************************************************
  *
  *  Variables - these are the only non-stack RAM usage
@@ -370,66 +355,22 @@ static inline void usb_ack_out(void)
         UEINTX = ~(1<<RXOUTI);
 }
 
+#include "usb/descriptors.c"
+
 // USB Endpoint Interrupt - endpoint 0 is handled here.  The
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
 //
 ISR(USB_COM_vect)
 {
-        uint8_t intbits;
-        const uint8_t *list;
-        const uint8_t *cfg;
-        uint8_t i, n, len, en;
         setup_packet_t setup_packet;
-        uint16_t desc_val;
-        const uint8_t *desc_addr;
-        uint8_t desc_length;
 
         UENUM = 0;
-        intbits = UEINTX;
-        if (intbits & (1<<RXSTPI)) {
+        if (UEINTX & (1<<RXSTPI)) {
                 recv_setup_packet(&setup_packet);
-                UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
+                clear_bit(UEINTX, RXSTPI);
                 if (setup_packet.bRequest == GET_DESCRIPTOR) {
-                        list = (const uint8_t *)descriptor_list;
-                        for (i=0; ; i++) {
-                                if (i >= NUM_DESC_LIST) {
-                                        UECONX = (1<<STALLRQ)|(1<<EPEN);  //stall
-                                        return;
-                                }
-                                desc_val = pgm_read_word(list);
-                                if (desc_val != setup_packet.wValue) {
-                                        list += sizeof(struct descriptor_list_struct);
-                                        continue;
-                                }
-                                list += 2;
-                                desc_val = pgm_read_word(list);
-                                if (desc_val != setup_packet.wIndex) {
-                                        list += sizeof(struct descriptor_list_struct)-2;
-                                        continue;
-                                }
-                                list += 2;
-                                desc_addr = (const uint8_t *)pgm_read_word(list);
-                                list += 2;
-                                desc_length = pgm_read_byte(list);
-                                break;
-                        }
-                        len = (setup_packet.wLength < 256) ? setup_packet.wLength : 255;
-                        if (len > desc_length) len = desc_length;
-                        do {
-                                // wait for host ready for IN packet
-                                do {
-                                        i = UEINTX;
-                                } while (!(i & ((1<<TXINI)|(1<<RXOUTI))));
-                                if (i & (1<<RXOUTI)) return;    // abort
-                                // send IN packet
-                                n = len < ENDPOINT0_SIZE ? len : ENDPOINT0_SIZE;
-                                for (i = n; i; i--) {
-                                        UEDATX = pgm_read_byte(desc_addr++);
-                                }
-                                len -= n;
-                                usb_send_in();
-                        } while (len || n == ENDPOINT0_SIZE);
+                        descriptor_send_dispatch(&setup_packet);
                         return;
                 }
                 if (setup_packet.bRequest == SET_ADDRESS) {
@@ -455,8 +396,7 @@ ISR(USB_COM_vect)
 
                 if (setup_packet.bRequest == GET_STATUS) {
                         usb_wait_in_ready();
-                        i = 0;
-                        UEDATX = i;
+                        UEDATX = 0;
                         UEDATX = 0;
                         usb_send_in();
                         return;
