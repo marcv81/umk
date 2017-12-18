@@ -26,7 +26,6 @@ int main()
     i2c_init();
     matrix_init();
     usb_init();
-    while (!usb_configured());
 
     // LEDs off
     led_1(false);
@@ -40,5 +39,6 @@ int main()
     {
         matrix_update();
         controller_update();
+        usb_update();
     }
 }

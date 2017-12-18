@@ -31,6 +31,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
 
 /**************************************************************************
  *
@@ -216,16 +217,11 @@ static const uint8_t PROGMEM descriptors[] = {
  **************************************************************************/
 
 // zero when we are not configured, non-zero when enumerated
-static volatile uint8_t usb_configuration=0;
+static uint8_t usb_configuration=0;
 
 usb_keyboard_report_t usb_keyboard_report;
 
-// the idle configuration, how often we send the report to the
-// host (ms * 4) even when it hasn't changed
-static uint8_t keyboard_idle_config=125;
-
-// count until idle timeout
-static uint8_t keyboard_idle_count=0;
+static bool update_requested = false;
 
 /**************************************************************************
  *
@@ -243,45 +239,12 @@ void usb_init(void)
         USB_CONFIG();                           // start USB clock
         UDCON = 0;                              // enable attach resistor
         usb_configuration = 0;
-        UDIEN = (1<<EORSTE)|(1<<SOFE);
-        sei();
-}
-
-// return 0 if the USB is not configured, or the configuration
-// number selected by the HOST
-uint8_t usb_configured(void)
-{
-        return usb_configuration;
 }
 
 // send the contents of keyboard_keys and keyboard_modifier_keys
-int8_t usb_keyboard_send(void)
+void usb_keyboard_send()
 {
-        uint8_t i, intr_state, timeout;
-
-        if (!usb_configuration) return -1;
-        intr_state = SREG;
-        cli();
-        UENUM = KEYBOARD_ENDPOINT;
-        timeout = UDFNUML + 50;
-        while (1) {
-                // are we ready to transmit?
-                if (UEINTX & (1<<RWAL)) break;
-                SREG = intr_state;
-                // has the USB gone offline?
-                if (!usb_configuration) return -1;
-                // have we waited too long?
-                if (UDFNUML == timeout) return -1;
-                // get ready to try checking again
-                intr_state = SREG;
-                cli();
-                UENUM = KEYBOARD_ENDPOINT;
-        }
-        send_keyboard_report(&usb_keyboard_report);
-        UEINTX = 0x3A;
-        keyboard_idle_count = 0;
-        SREG = intr_state;
-        return 0;
+        update_requested = true;
 }
 
 /**************************************************************************
@@ -289,36 +252,6 @@ int8_t usb_keyboard_send(void)
  *  Private Functions - not intended for general user consumption....
  *
  **************************************************************************/
-
-// USB Device Interrupt - handle all device-level events
-// the transmit buffer flushing is triggered by the start of frame
-//
-ISR(USB_GEN_vect)
-{
-        uint8_t intbits, t, i;
-        static uint8_t div4=0;
-
-        intbits = UDINT;
-        UDINT = 0;
-        if (intbits & (1<<EORSTI)) {
-                init_endpoint(0, EP_TYPE_CONTROL, EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER);
-                UEIENX = (1<<RXSTPE);
-                usb_configuration = 0;
-        }
-        if ((intbits & (1<<SOFI)) && usb_configuration) {
-                if (keyboard_idle_config && (++div4 & 3) == 0) {
-                        UENUM = KEYBOARD_ENDPOINT;
-                        if (UEINTX & (1<<RWAL)) {
-                                keyboard_idle_count++;
-                                if (keyboard_idle_count == keyboard_idle_config) {
-                                        keyboard_idle_count = 0;
-                                        send_keyboard_report(&usb_keyboard_report);
-                                        UEINTX = 0x3A;
-                                }
-                        }
-                }
-        }
-}
 
 // Misc functions to wait for ready and send/receive packets
 static inline void usb_wait_in_ready(void)
@@ -340,11 +273,7 @@ static inline void usb_ack_out(void)
 
 #include "usb/descriptors.c"
 
-// USB Endpoint Interrupt - endpoint 0 is handled here.  The
-// other endpoints are manipulated by the user-callable
-// functions, and the start-of-frame interrupt.
-//
-ISR(USB_COM_vect)
+static void update_endpoint_0()
 {
         setup_packet_t setup_packet;
 
@@ -373,3 +302,5 @@ ISR(USB_COM_vect)
         }
         set_bit(UECONX, STALLRQ);
 }
+
+#include "usb/more.c"

@@ -11,9 +11,9 @@ typedef struct
 usb_keyboard_report_t;
 
 void usb_init(void);                    // initialize everything
-uint8_t usb_configured(void);           // is the USB port configured
+void usb_update();
 
-int8_t usb_keyboard_send(void);
+void usb_keyboard_send();
 extern usb_keyboard_report_t usb_keyboard_report;
 
 #define KEY_CTRL        0x01
