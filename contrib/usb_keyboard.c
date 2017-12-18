@@ -113,7 +113,21 @@
 // in here should only be done by those who've read chapter 9 of the USB
 // spec and relevant portions of any USB class specifications!
 
-static const uint8_t PROGMEM device_descriptor[] = {
+#define DESCRIPTOR_OFFSET_DEVICE 0
+#define DESCRIPTOR_LENGTH_DEVICE 18
+
+#define DESCRIPTOR_OFFSET_CONFIGURATION 18
+#define DESCRIPTOR_LENGTH_CONFIGURATION 34
+
+#define DESCRIPTOR_OFFSET_HID_INTERFACE 36
+#define DESCRIPTOR_LENGTH_HID_INTERFACE 9
+
+#define DESCRIPTOR_OFFSET_HID_REPORT 52
+#define DESCRIPTOR_LENGTH_HID_REPORT 63
+
+static const uint8_t PROGMEM descriptors[] = {
+
+        // Device descriptor
         18,                                     // bLength
         1,                                      // bDescriptorType
         0x00, 0x02,                             // bcdUSB
@@ -127,11 +141,49 @@ static const uint8_t PROGMEM device_descriptor[] = {
         0,                                      // iManufacturer
         0,                                      // iProduct
         0,                                      // iSerialNumber
-        1                                       // bNumConfigurations
-};
+        1,                                      // bNumConfigurations
 
-// Keyboard Protocol 1, HID 1.11 spec, Appendix B, page 59-60
-static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
+        // Configuration descriptor
+        9,                                      // bLength;
+        2,                                      // bDescriptorType;
+        LSB(DESCRIPTOR_LENGTH_CONFIGURATION),   // wTotalLength
+        MSB(DESCRIPTOR_LENGTH_CONFIGURATION),
+        1,                                      // bNumInterfaces
+        1,                                      // bConfigurationValue
+        0,                                      // iConfiguration
+        0xC0,                                   // bmAttributes
+        50,                                     // bMaxPower
+
+        // Interface descriptor
+        9,                                      // bLength
+        4,                                      // bDescriptorType
+        KEYBOARD_INTERFACE,                     // bInterfaceNumber
+        0,                                      // bAlternateSetting
+        1,                                      // bNumEndpoints
+        0x03,                                   // bInterfaceClass (0x03 = HID)
+        0x01,                                   // bInterfaceSubClass (0x01 = Boot)
+        0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
+        0,                                      // iInterface
+
+        // HID interface descriptor
+        9,                                      // bLength
+        0x21,                                   // bDescriptorType
+        0x11, 0x01,                             // bcdHID
+        0,                                      // bCountryCode
+        1,                                      // bNumDescriptors
+        0x22,                                   // bDescriptorType
+        LSB(DESCRIPTOR_LENGTH_HID_REPORT),      // wDescriptorLength
+        MSB(DESCRIPTOR_LENGTH_HID_REPORT),
+
+        // Endpoint descriptor
+        7,                                      // bLength
+        5,                                      // bDescriptorType
+        KEYBOARD_ENDPOINT | 0x80,               // bEndpointAddress
+        0x03,                                   // bmAttributes (0x03=intr)
+        KEYBOARD_SIZE, 0,                       // wMaxPacketSize
+        1,                                      // bInterval
+
+        // HID report descriptor
         0x05, 0x01,          // Usage Page (Generic Desktop),
         0x09, 0x06,          // Usage (Keyboard),
         0xA1, 0x01,          // Collection (Application),
@@ -163,48 +215,7 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
         0x19, 0x00,          //   Usage Minimum (0),
         0x29, 0x68,          //   Usage Maximum (104),
         0x81, 0x00,          //   Input (Data, Array),
-        0xc0                 // End Collection
-};
-
-#define CONFIG1_DESC_SIZE        (9+9+9+7)
-#define KEYBOARD_HID_DESC_OFFSET (9+9)
-static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
-        // configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
-        9,                                      // bLength;
-        2,                                      // bDescriptorType;
-        LSB(CONFIG1_DESC_SIZE),                 // wTotalLength
-        MSB(CONFIG1_DESC_SIZE),
-        1,                                      // bNumInterfaces
-        1,                                      // bConfigurationValue
-        0,                                      // iConfiguration
-        0xC0,                                   // bmAttributes
-        50,                                     // bMaxPower
-        // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-        9,                                      // bLength
-        4,                                      // bDescriptorType
-        KEYBOARD_INTERFACE,                     // bInterfaceNumber
-        0,                                      // bAlternateSetting
-        1,                                      // bNumEndpoints
-        0x03,                                   // bInterfaceClass (0x03 = HID)
-        0x01,                                   // bInterfaceSubClass (0x01 = Boot)
-        0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
-        0,                                      // iInterface
-        // HID interface descriptor, HID 1.11 spec, section 6.2.1
-        9,                                      // bLength
-        0x21,                                   // bDescriptorType
-        0x11, 0x01,                             // bcdHID
-        0,                                      // bCountryCode
-        1,                                      // bNumDescriptors
-        0x22,                                   // bDescriptorType
-        sizeof(keyboard_hid_report_desc),       // wDescriptorLength
-        0,
-        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-        7,                                      // bLength
-        5,                                      // bDescriptorType
-        KEYBOARD_ENDPOINT | 0x80,               // bEndpointAddress
-        0x03,                                   // bmAttributes (0x03=intr)
-        KEYBOARD_SIZE, 0,                       // wMaxPacketSize
-        1                                       // bInterval
+        0xc0,                // End Collection
 };
 
 // This table defines which descriptor data is sent for each specific
@@ -215,10 +226,10 @@ static const struct descriptor_list_struct {
         const uint8_t   *addr;
         uint8_t         length;
 } PROGMEM descriptor_list[] = {
-        {0x0100, 0x0000, device_descriptor, sizeof(device_descriptor)},
-        {0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
-        {0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
-        {0x2100, KEYBOARD_INTERFACE, config1_descriptor+KEYBOARD_HID_DESC_OFFSET, 9},
+        {0x0100, 0x0000, descriptors + DESCRIPTOR_OFFSET_DEVICE, DESCRIPTOR_LENGTH_DEVICE},
+        {0x0200, 0x0000, descriptors + DESCRIPTOR_OFFSET_CONFIGURATION, DESCRIPTOR_LENGTH_CONFIGURATION},
+        {0x2200, KEYBOARD_INTERFACE, descriptors + DESCRIPTOR_OFFSET_HID_REPORT, DESCRIPTOR_LENGTH_HID_REPORT},
+        {0x2100, KEYBOARD_INTERFACE, descriptors + DESCRIPTOR_OFFSET_HID_INTERFACE, DESCRIPTOR_LENGTH_HID_INTERFACE},
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
 
