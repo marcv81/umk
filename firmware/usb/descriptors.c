@@ -16,7 +16,7 @@ static void descriptor_send(const uint8_t* data, uint16_t length)
         length -= packet_length;
         while (packet_length--)
         {
-            send8(pgm_read_byte(data++));
+            UEDATX = pgm_read_byte(data++);
         }
         // Send the data packet
         clear_bit(UEINTX, TXINI);
