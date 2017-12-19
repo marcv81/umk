@@ -12,14 +12,15 @@ static void update_reset()
     if (!read_bit(UDINT, EORSTI)) return;
 
     clear_bit(UDINT, EORSTI);
-    init_endpoint(0, EP_TYPE_CONTROL, EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER);
+    init_endpoint(0, ENDPOINT0_CFG0, ENDPOINT0_CFG1);
+    init_endpoint(1, ENDPOINT1_CFG0, ENDPOINT1_CFG1);
 }
 
 // Process endpoint 0 setup packets
 static void update_endpoint_0()
 {
     // Return immediately if the conditions are not met
-    UENUM = 0;
+    select_endpoint(0);
     if (!read_bit(UEINTX, RXSTPI)) return;
 
     // Read the setup packet
@@ -59,21 +60,19 @@ static void update_endpoint_0()
         set_bit(UDADDR, ADDEN);
     }
 
-    // Set configuration 1 requests
+    // Set configuration requests
+    // Take no action, the device remains configured
     else
     if (setup_packet.bRequest == SET_CONFIGURATION &&
         direction == DIRECTION_HOST_TO_DEVICE &&
         type == TYPE_STANDARD &&
         recipient == RECIPIENT_DEVICE &&
-        setup_packet.wValue == 1 &&
         setup_packet.wIndex == 0 &&
         setup_packet.wLength == 0)
     {
         // Send the status packet
         clear_bit(UEINTX, TXINI);
         while (!read_bit(UEINTX, TXINI));
-
-        init_endpoint(1, EP_TYPE_INTERRUPT_IN, EP_SIZE(KEYBOARD_SIZE) | KEYBOARD_BUFFER);
     }
 
     // Unsupported requests
@@ -88,7 +87,7 @@ static void update_endpoint_1()
 {
     // Return immediately if the conditions are not met
     if (!update_requested) return;
-    UENUM = KEYBOARD_ENDPOINT;
+    select_endpoint(1);
     if (!read_bit(UEINTX, RWAL)) return;
 
     send_keyboard_report(&usb_keyboard_report);

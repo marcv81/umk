@@ -27,6 +27,7 @@
 #include "usb_keyboard.h"
 
 #include "usb/core.c"
+#include "usb/endpoints.c"
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
@@ -38,17 +39,6 @@
  *  Preprocessor macros
  *
  **************************************************************************/
-
-#define EP_TYPE_CONTROL                 0x00
-#define EP_TYPE_INTERRUPT_IN            0xC1
-
-#define EP_SINGLE_BUFFER                0x02
-#define EP_DOUBLE_BUFFER                0x06
-
-#define EP_SIZE(s)      ((s) == 64 ? 0x30 :     \
-                        ((s) == 32 ? 0x20 :     \
-                        ((s) == 16 ? 0x10 :     \
-                                     0x00)))
 
 #define LSB(n) (n & 255)
 #define MSB(n) ((n >> 8) & 255)
@@ -86,12 +76,8 @@
  *
  **************************************************************************/
 
-#define ENDPOINT0_SIZE          32
-
 #define KEYBOARD_INTERFACE      0
 #define KEYBOARD_ENDPOINT       1
-#define KEYBOARD_SIZE           8
-#define KEYBOARD_BUFFER         EP_DOUBLE_BUFFER
 
 /**************************************************************************
  *
@@ -172,7 +158,8 @@ static const uint8_t PROGMEM descriptors[] = {
         5,                                      // bDescriptorType
         KEYBOARD_ENDPOINT | 0x80,               // bEndpointAddress
         0x03,                                   // bmAttributes (0x03=intr)
-        KEYBOARD_SIZE, 0,                       // wMaxPacketSize
+        LSB(ENDPOINT1_SIZE),                    // wMaxPacketSize
+        MSB(ENDPOINT1_SIZE),
         1,                                      // bInterval
 
         // HID report descriptor
