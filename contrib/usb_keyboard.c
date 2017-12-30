@@ -43,27 +43,6 @@
 #define LSB(n) (n & 255)
 #define MSB(n) ((n >> 8) & 255)
 
-#if defined(__AVR_AT90USB162__)
-#define HW_CONFIG()
-#define PLL_CONFIG() (PLLCSR = ((1<<PLLE)|(1<<PLLP0)))
-#define USB_CONFIG() (USBCON = (1<<USBE))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-#elif defined(__AVR_ATmega32U4__)
-#define HW_CONFIG() (UHWCON = 0x01)
-#define PLL_CONFIG() (PLLCSR = 0x12)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-#elif defined(__AVR_AT90USB646__)
-#define HW_CONFIG() (UHWCON = 0x81)
-#define PLL_CONFIG() (PLLCSR = 0x1A)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-#elif defined(__AVR_AT90USB1286__)
-#define HW_CONFIG() (UHWCON = 0x81)
-#define PLL_CONFIG() (PLLCSR = 0x16)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-#endif
 
 // standard control endpoint request types
 #define SET_ADDRESS                     5
@@ -212,17 +191,6 @@ static bool update_requested = false;
  *  Public Functions - these are the API intended for the user
  *
  **************************************************************************/
-
-// initialize USB
-void usb_init(void)
-{
-        HW_CONFIG();
-        USB_FREEZE();   // enable USB
-        PLL_CONFIG();                           // config PLL
-        while (!(PLLCSR & (1<<PLOCK))) ;        // wait for PLL lock
-        USB_CONFIG();                           // start USB clock
-        UDCON = 0;                              // enable attach resistor
-}
 
 // send the contents of keyboard_keys and keyboard_modifier_keys
 void usb_keyboard_send()

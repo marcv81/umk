@@ -7,6 +7,26 @@
 #define set_bit(r, b) (r |= (1 << b))
 #define clear_bit(r, b) (r &= ~(1 << b))
 
+void usb_init()
+{
+    // Enable the pad regulator
+    set_bit(UHWCON, UVREGE);
+    // Enable the USB controller
+    set_bit(USBCON, USBE);
+    // Configure the PLL divisor (16MHz clock)
+    set_bit(PLLCSR, PINDIV);
+    // Enable the PLL
+    set_bit(PLLCSR, PLLE);
+    // Wait for the PLL to lock
+    while (!read_bit(PLLCSR, PLOCK));
+    // Enable the VBUS pad
+    set_bit(USBCON, OTGPADE);
+    // Enable the clock
+    clear_bit(USBCON, FRZCLK);
+    // Attach the device
+    clear_bit(UDCON, DETACH);
+}
+
 typedef struct
 {
     uint8_t bmRequestType;
