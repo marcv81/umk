@@ -1,21 +1,6 @@
 #ifndef USB_KEYBOARD_H
 #define USB_KEYBOARD_H
 
-#include <stdint.h>
-
-typedef struct
-{
-    uint8_t modifiers;
-    uint8_t keys[6];
-}
-usb_keyboard_report_t;
-
-void usb_init(void);                    // initialize everything
-void usb_update();
-
-void usb_keyboard_send();
-extern usb_keyboard_report_t usb_keyboard_report;
-
 #define KEY_CTRL        0x01
 #define KEY_SHIFT       0x02
 #define KEY_ALT         0x04

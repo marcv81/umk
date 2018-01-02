@@ -1,6 +1,121 @@
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <stdbool.h>
+
+#include "usb.h"
+
+#define read_bit(r, b) (r & (1 << b))
+#define set_bit(r, b) (r |= (1 << b))
+#define clear_bit(r, b) (r &= ~(1 << b))
+
 #define lsb(n) (n & 255)
 #define msb(n) ((n >> 8) & 255)
-#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
+#define min(x, y)  ((x) < (y) ? (x) : (y))
+
+/*
+ * USB initialization
+ */
+
+void usb_init()
+{
+    // Enable the pad regulator
+    set_bit(UHWCON, UVREGE);
+    // Enable the USB controller
+    set_bit(USBCON, USBE);
+    // Configure the PLL divisor (16MHz clock)
+    set_bit(PLLCSR, PINDIV);
+    // Enable the PLL
+    set_bit(PLLCSR, PLLE);
+    // Wait for the PLL to lock
+    while (!read_bit(PLLCSR, PLOCK));
+    // Enable the VBUS pad
+    set_bit(USBCON, OTGPADE);
+    // Enable the clock
+    clear_bit(USBCON, FRZCLK);
+    // Attach the device
+    clear_bit(UDCON, DETACH);
+}
+
+/*
+ * Endpoints configuration
+ */
+
+// Endpoint configuration register 0 constants
+#define ENDPOINT_CFG0_TYPE_CONTROL   0b00000000
+#define ENDPOINT_CFG0_TYPE_INTERRUPT 0b11000000
+#define ENDPOINT_CFG0_DIRECTION_OUT  0b00000000
+#define ENDPOINT_CFG0_DIRECTION_IN   0b00000001
+
+// Endpoint configuration register 1 constants
+#define ENDPOINT_CFG1_SIZE_8      0b00000000
+#define ENDPOINT_CFG1_SIZE_16     0b00010000
+#define ENDPOINT_CFG1_SIZE_32     0b00100000
+#define ENDPOINT_CFG1_SIZE_64     0b00110000
+#define ENDPOINT_CFG1_SIZE_128    0b01000000
+#define ENDPOINT_CFG1_SIZE_256    0b01010000
+#define ENDPOINT_CFG1_SIZE_512    0b01100000
+#define ENDPOINT_CFG1_BANK_SINGLE 0b00000000
+#define ENDPOINT_CFG1_BANK_DOUBLE 0b00000100
+#define ENDPOINT_CFG1_ALLOCATE    0b00000010
+
+// Control endpoint configuration
+#define ENDPOINT0_SIZE 64
+#define ENDPOINT0_CFG0 ( \
+    ENDPOINT_CFG0_TYPE_CONTROL | \
+    ENDPOINT_CFG0_DIRECTION_OUT)
+#define ENDPOINT0_CFG1 ( \
+    ENDPOINT_CFG1_SIZE_64 | \
+    ENDPOINT_CFG1_BANK_SINGLE | \
+    ENDPOINT_CFG1_ALLOCATE)
+
+// Keyboard endpoint configuration
+#define ENDPOINT1_SIZE 8
+#define ENDPOINT1_CFG0 ( \
+    ENDPOINT_CFG0_TYPE_INTERRUPT | \
+    ENDPOINT_CFG0_DIRECTION_IN)
+#define ENDPOINT1_CFG1 ( \
+    ENDPOINT_CFG1_SIZE_8 | \
+    ENDPOINT_CFG1_BANK_DOUBLE | \
+    ENDPOINT_CFG1_ALLOCATE)
+
+#define MASK_UENUM 0b00000111
+
+// Select endpoint
+#define endpoint_select(e) (UENUM = (e & MASK_UENUM))
+
+// Configure endpoint
+static void endpoint_init(uint8_t endpoint, uint8_t cfg0, uint8_t cfg1)
+{
+    endpoint_select(endpoint);
+    // Enable endpoint
+    set_bit(UECONX, EPEN);
+    // Set endpoint configuration registers
+    UECFG0X = cfg0;
+    UECFG1X = cfg1;
+    // Wait until endpoint is configured
+    while (!read_bit(UESTA0X, CFGOK));
+}
+
+// Configure the endpoints after a device reset
+static void update_reset()
+{
+    // Return unless an end-of-reset event happened
+    if (!read_bit(UDINT, EORSTI)) return;
+
+    // Acknowledge the event
+    clear_bit(UDINT, EORSTI);
+
+    // Configure the endpoints
+    endpoint_init(0, ENDPOINT0_CFG0, ENDPOINT0_CFG1);
+    endpoint_init(1, ENDPOINT1_CFG0, ENDPOINT1_CFG1);
+}
+
+/*
+ * USB descriptors
+ */
+
+#define VENDOR_ID 0x046a // Cherry
+#define PRODUCT_ID 0x0001 // Keyboard
 
 // Standard descriptor types
 #define DESCRIPTOR_TYPE_DEVICE 0x01
@@ -147,8 +262,47 @@ static const uint8_t PROGMEM descriptors[] = {
     0xc0,        // End Collection
 };
 
+/*
+ * Control endpoint logic
+ */
+
+// Control request constants
+#define CONTROL_REQUEST_SET_ADDRESS 0x05
+#define CONTROL_REQUEST_GET_DESCRIPTOR 0x06
+#define CONTROL_REQUEST_SET_CONFIGURATION 0x09
+
+// Control request type constants
+#define CONTROL_DIRECTION_HOST_TO_DEVICE 0
+#define CONTROL_DIRECTION_DEVICE_TO_HOST 1
+#define CONTROL_TYPE_STANDARD 0
+#define CONTROL_RECIPIENT_DEVICE 0
+
+#define MASK_UDADDR 0b01111111
+
+typedef struct
+{
+    uint8_t bmRequestType;
+    uint8_t bRequest;
+    uint16_t wValue;
+    uint16_t wIndex;
+    uint16_t wLength;
+}
+setup_packet_t;
+
+static void setup_packet_recv(setup_packet_t *setup_packet)
+{
+    setup_packet->bmRequestType = UEDATX;
+    setup_packet->bRequest = UEDATX;
+    setup_packet->wValue = UEDATX;
+    setup_packet->wValue |= UEDATX << 8;
+    setup_packet->wIndex = UEDATX;
+    setup_packet->wIndex |= UEDATX << 8;
+    setup_packet->wLength = UEDATX;
+    setup_packet->wLength |= UEDATX << 8;
+}
+
 // Send a descriptor
-// The payload is split in packets of ENDPOINT0_SIZE bytes
+// The payload is split into packets of ENDPOINT0_SIZE bytes
 static void descriptor_send(const uint8_t* data, uint16_t length)
 {
     while (length)
@@ -234,4 +388,119 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet)
     {
         set_bit(UECONX, STALLRQ);
     }
+}
+
+// Respond to the setup packets sent to the control endpoint
+static void update_endpoint_control()
+{
+    // Return unless a setup packet arrived
+    endpoint_select(0);
+    if (!read_bit(UEINTX, RXSTPI)) return;
+
+    // Read the setup packet
+    setup_packet_t setup_packet;
+    setup_packet_recv(&setup_packet);
+
+    // Acknowledge the setup packet
+    clear_bit(UEINTX, RXSTPI);
+
+    uint8_t direction = (setup_packet.bmRequestType & 0b10000000) >> 7;
+    uint8_t type      = (setup_packet.bmRequestType & 0b01100000) >> 5;
+    uint8_t recipient = (setup_packet.bmRequestType & 0b00011111);
+
+    // Get descriptor requests
+    if (setup_packet.bRequest == CONTROL_REQUEST_GET_DESCRIPTOR &&
+        direction == CONTROL_DIRECTION_DEVICE_TO_HOST &&
+        type == CONTROL_TYPE_STANDARD)
+    {
+        descriptor_send_dispatch(&setup_packet);
+    }
+
+    // Set address requests
+    else
+    if (setup_packet.bRequest == CONTROL_REQUEST_SET_ADDRESS &&
+        direction == CONTROL_DIRECTION_HOST_TO_DEVICE &&
+        type == CONTROL_TYPE_STANDARD &&
+        recipient == CONTROL_RECIPIENT_DEVICE &&
+        setup_packet.wIndex == 0 &&
+        setup_packet.wLength == 0)
+    {
+        // Set the address
+        UDADDR = setup_packet.wValue & MASK_UDADDR;
+
+        // Send the status packet
+        clear_bit(UEINTX, TXINI);
+        while (!read_bit(UEINTX, TXINI));
+
+        // Enable the address
+        set_bit(UDADDR, ADDEN);
+    }
+
+    // Set configuration requests
+    // Take no action, the device remains configured
+    else
+    if (setup_packet.bRequest == CONTROL_REQUEST_SET_CONFIGURATION &&
+        direction == CONTROL_DIRECTION_HOST_TO_DEVICE &&
+        type == CONTROL_TYPE_STANDARD &&
+        recipient == CONTROL_RECIPIENT_DEVICE &&
+        setup_packet.wIndex == 0 &&
+        setup_packet.wLength == 0)
+    {
+        // Send the status packet
+        clear_bit(UEINTX, TXINI);
+        while (!read_bit(UEINTX, TXINI));
+    }
+
+    // Unsupported requests
+    else
+    {
+        set_bit(UECONX, STALLRQ);
+    }
+}
+
+/*
+ * Keyboard endpoint logic
+ */
+
+usb_keyboard_report_t usb_keyboard_report;
+
+static bool keyboard_report_update_requested = false;
+
+void usb_keyboard_report_update()
+{
+    keyboard_report_update_requested = true;
+}
+
+static void keyboard_report_send(usb_keyboard_report_t *usb_keyboard_report)
+{
+    UEDATX = usb_keyboard_report->modifiers;
+    UEDATX = 0;
+    for (uint8_t i=0; i<6; i++)
+    {
+        UEDATX = usb_keyboard_report->keys[i];
+    }
+}
+
+// Send the keyboard report when there is a pending request
+// and writing on the endpoint is allowed
+static void update_endpoint_keyboard()
+{
+    if (!keyboard_report_update_requested) return;
+    endpoint_select(1);
+    if (!read_bit(UEINTX, RWAL)) return;
+
+    keyboard_report_send(&usb_keyboard_report);
+    clear_bit(UEINTX, FIFOCON);
+    keyboard_report_update_requested = false;
+}
+
+/*
+ * USB coroutine
+ */
+
+void usb_update()
+{
+    update_reset();
+    update_endpoint_control();
+    update_endpoint_keyboard();
 }

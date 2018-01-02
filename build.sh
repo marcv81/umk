@@ -24,7 +24,7 @@ compile firmware/matrix_left
 compile firmware/matrix
 compile firmware/debounce
 compile firmware/controller
-compile contrib/usb_keyboard
+compile firmware/usb
 compile contrib/twimaster
 compile contrib/millis
 
@@ -37,7 +37,7 @@ firmware/matrix_left.o \
 firmware/matrix.o \
 firmware/debounce.o \
 firmware/controller.o \
-contrib/usb_keyboard.o \
+firmware/usb.o \
 contrib/twimaster.o \
 contrib/millis.o \
 -o firmware/firmware.elf

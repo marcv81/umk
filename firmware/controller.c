@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "matrix.h"
+#include "usb.h"
 #include "usb_keyboard.h"
 
 // Modifiers layout
@@ -100,7 +101,7 @@ void update_usb()
         updated = 1;
     }
 
-    if (updated) usb_keyboard_send();
+    if (updated) usb_keyboard_report_update();
 }
 
 void controller_update()

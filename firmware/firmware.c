@@ -3,7 +3,7 @@
 
 #include "led.h"
 #include "matrix.h"
-#include "usb_keyboard.h"
+#include "usb.h"
 #include "i2cmaster.h"
 #include "controller.h"
 
