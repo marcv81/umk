@@ -13,10 +13,6 @@ typedef struct
 }
 usb_keyboard_report_t;
 
-// Keyboard report
-extern usb_keyboard_report_t usb_keyboard_report;
-
-// Send the keyboard report to the host at the next opportunity
-void usb_keyboard_report_update();
+void usb_keyboard_report_update(usb_keyboard_report_t *report);
 
 #endif // USB_H

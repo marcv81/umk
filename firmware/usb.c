@@ -462,22 +462,39 @@ static void update_endpoint_control()
  * Keyboard endpoint logic
  */
 
-usb_keyboard_report_t usb_keyboard_report;
+static usb_keyboard_report_t keyboard_report;
 
 static bool keyboard_report_update_requested = false;
 
-void usb_keyboard_report_update()
+// Update the keyboard report
+// Only request an update to the host if the contents changed
+void usb_keyboard_report_update(usb_keyboard_report_t *report)
 {
-    keyboard_report_update_requested = true;
+    // Update the keys
+    for (uint8_t i=0; i<6; i++)
+    {
+        if (keyboard_report.keys[i] != report->keys[i])
+        {
+            keyboard_report.keys[i] = report->keys[i];
+            keyboard_report_update_requested = true;
+        }
+    }
+
+    // Update the modifiers
+    if (keyboard_report.modifiers != report->modifiers)
+    {
+        keyboard_report.modifiers = report->modifiers;
+        keyboard_report_update_requested = true;
+    }
 }
 
-static void keyboard_report_send(usb_keyboard_report_t *usb_keyboard_report)
+static void keyboard_report_send(usb_keyboard_report_t *report)
 {
-    UEDATX = usb_keyboard_report->modifiers;
+    UEDATX = report->modifiers;
     UEDATX = 0;
     for (uint8_t i=0; i<6; i++)
     {
-        UEDATX = usb_keyboard_report->keys[i];
+        UEDATX = report->keys[i];
     }
 }
 
@@ -489,7 +506,7 @@ static void update_endpoint_keyboard()
     endpoint_select(1);
     if (!read_bit(UEINTX, RWAL)) return;
 
-    keyboard_report_send(&usb_keyboard_report);
+    keyboard_report_send(&keyboard_report);
     clear_bit(UEINTX, FIFOCON);
     keyboard_report_update_requested = false;
 }

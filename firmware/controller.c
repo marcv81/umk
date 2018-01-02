@@ -15,7 +15,7 @@
 #define LEFT_GUI 14
 #define RIGHT_GUI 27
 
-static usb_keyboard_report_t report;
+static usb_keyboard_report_t keyboard_report;
 
 // Keys layout
 static const uint8_t scancodes[MATRIX_KEYS] =
@@ -34,7 +34,7 @@ static void update_keys()
     // Reset the keys
     for (uint8_t i=0; i<6; i++)
     {
-        report.keys[i] = 0;
+        keyboard_report.keys[i] = 0;
     }
 
     // Accumulate at most 6 scancodes
@@ -49,7 +49,7 @@ static void update_keys()
 
         if (keys_index < 6)
         {
-            report.keys[keys_index++] = scancodes[i];
+            keyboard_report.keys[keys_index++] = scancodes[i];
         }
     }
 }
@@ -58,55 +58,30 @@ static void update_keys()
 static void update_modifiers()
 {
     // Reset the modifiers
-    report.modifiers = 0;
+    keyboard_report.modifiers = 0;
 
     // Update control
     if (matrix_pressed(LEFT_CTRL) || matrix_pressed(RIGHT_CTRL))
     {
-        report.modifiers |= KEY_CTRL;
+        keyboard_report.modifiers |= KEY_CTRL;
     }
 
     // Update shift
     if (matrix_pressed(LEFT_SHIFT) || matrix_pressed(RIGHT_SHIFT))
     {
-        report.modifiers |= KEY_SHIFT;
+        keyboard_report.modifiers |= KEY_SHIFT;
     }
 
     // Update GUI
     if (matrix_pressed(LEFT_GUI) || matrix_pressed(RIGHT_GUI))
     {
-        report.modifiers |= KEY_GUI;
+        keyboard_report.modifiers |= KEY_GUI;
     }
-}
-
-// Send an update over USB if the keys or modifiers changed
-void update_usb()
-{
-    uint8_t updated = 0;
-
-    // Test if the keys changed
-    for (uint8_t i=0; i<6; i++)
-    {
-        if (report.keys[i] != usb_keyboard_report.keys[i])
-        {
-            usb_keyboard_report.keys[i] = report.keys[i];
-            updated = 1;
-        }
-    }
-
-    // Test if the modifiers changed
-    if (report.modifiers != usb_keyboard_report.modifiers)
-    {
-        usb_keyboard_report.modifiers = report.modifiers;
-        updated = 1;
-    }
-
-    if (updated) usb_keyboard_report_update();
 }
 
 void controller_update()
 {
     update_keys();
     update_modifiers();
-    update_usb();
+    usb_keyboard_report_update(&keyboard_report);
 }
