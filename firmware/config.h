@@ -10,4 +10,7 @@
 // To define N set the N least significant bits of DEBOUNCE_MASK
 #define DEBOUNCE_MASK 0b00011111 // N = 5
 
+// I2C bus frequency
+#define I2C_FREQUENCY 400000
+
 #endif // CONFIG_H

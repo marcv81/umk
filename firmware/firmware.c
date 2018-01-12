@@ -4,7 +4,7 @@
 #include "led.h"
 #include "matrix.h"
 #include "usb.h"
-#include "i2cmaster.h"
+#include "i2c.h"
 #include "controller.h"
 
 int main()

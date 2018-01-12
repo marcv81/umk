@@ -1,6 +1,6 @@
 #include "matrix_left.h"
 
-#include "i2cmaster.h"
+#include "i2c.h"
 
 // Column: 0   1   2   3   4   5   6
 // Pin:    A0  A1  A2  A3  A2  A3  A6
@@ -13,7 +13,7 @@
 
 // http://ww1.microchip.com/downloads/en/DeviceDoc/22103a.pdf
 
-#define MCP23018_ADDR    0b01000000
+#define MCP23018_ADDR    0b00100000
 #define MCP23018_IODIRA  0x00
 #define MCP23018_IODIRB  0x01
 #define MCP23018_GPPUA   0x0c
@@ -21,40 +21,22 @@
 #define MCP23018_GPIOA   0x12
 #define MCP23018_GPIOB   0x13
 
-static void mcp23018_write(uint8_t address, uint8_t data)
-{
-    i2c_start(MCP23018_ADDR | I2C_WRITE);
-    i2c_write(address);
-    i2c_write(data);
-    i2c_stop();
-}
-
-static uint8_t mcp23018_read(uint8_t address)
-{
-    i2c_start(MCP23018_ADDR | I2C_WRITE);
-    i2c_write(address);
-    i2c_start(MCP23018_ADDR | I2C_READ);
-    uint8_t data = i2c_readNak();
-    i2c_stop();
-    return data;
-}
-
 static void init_columns()
 {
-    // Disable the pull-ups
-    mcp23018_write(MCP23018_GPPUA, 0b00000000); // default 0b00000000
-    // Set the direction to output
-    mcp23018_write(MCP23018_IODIRA, 0b00000000); // default 0b11111111
-    // Set the output to hi-Z
-    mcp23018_write(MCP23018_GPIOA, 0b11111111); // default 0b00000000
+    // Disable the pull-ups (default = 0b00000000)
+    i2c_write_byte(MCP23018_ADDR, MCP23018_GPPUA, 0b00000000);
+    // Set the direction to output (default = 0b11111111)
+    i2c_write_byte(MCP23018_ADDR, MCP23018_IODIRA, 0b00000000);
+    // Set the output to hi-Z (default = 0b00000000)
+    i2c_write_byte(MCP23018_ADDR, MCP23018_GPIOA, 0b11111111);
 }
 
 static void init_rows()
 {
-    // Enable the pull-ups
-    mcp23018_write(MCP23018_GPPUB, 0b11111111); // default 0b00000000
-    // Set the direction to input
-    mcp23018_write(MCP23018_IODIRB, 0b11111111); // default 0b11111111
+    // Enable the pull-ups (default = 0b00000000)
+    i2c_write_byte(MCP23018_ADDR, MCP23018_GPPUB, 0b11111111);
+    // Set the direction to input (default = 0b11111111)
+    i2c_write_byte(MCP23018_ADDR, MCP23018_IODIRB, 0b11111111);
 }
 
 void matrix_left_init()
@@ -69,14 +51,15 @@ void matrix_left_select_column(uint8_t column)
     // Set the other columns to hi-Z (GPIO=1)
     // No update to the pull-ups or the direction (GPPU=0, IODIR=0)
     uint8_t gpioa = (column < 7) ? ~(1 << column) : 0b11111111;
-    mcp23018_write(MCP23018_GPIOA, gpioa);
+    i2c_write_byte(MCP23018_ADDR, MCP23018_GPIOA, gpioa);
 }
 
 // A low input is a pressed key
 // Return a uint8_t, one bit per row, a set bit is a pressed key
 uint8_t matrix_left_read_rows()
 {
-    uint8_t data = mcp23018_read(MCP23018_GPIOB);
+    uint8_t data;
+    i2c_read_byte(MCP23018_ADDR, MCP23018_GPIOB, &data);
     return
         (data & 0b00100000 ? 0 : 0b00000001) |
         (data & 0b00010000 ? 0 : 0b00000010) |

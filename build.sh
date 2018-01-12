@@ -25,7 +25,7 @@ compile firmware/matrix
 compile firmware/debounce
 compile firmware/controller
 compile firmware/usb
-compile contrib/twimaster
+compile firmware/i2c
 compile contrib/millis
 
 # Link
@@ -38,7 +38,7 @@ firmware/matrix.o \
 firmware/debounce.o \
 firmware/controller.o \
 firmware/usb.o \
-contrib/twimaster.o \
+firmware/i2c.o \
 contrib/millis.o \
 -o firmware/firmware.elf
 
