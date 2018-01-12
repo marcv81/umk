@@ -10,7 +10,7 @@
 
 #define lsb(n) (n & 255)
 #define msb(n) ((n >> 8) & 255)
-#define min(x, y)  ((x) < (y) ? (x) : (y))
+#define min(x, y) ((x) < (y) ? (x) : (y))
 
 /*
  * USB initialization
@@ -182,7 +182,7 @@ static const uint8_t PROGMEM descriptors[] = {
     DESCRIPTOR_LENGTH_CONFIGURATION,             // bLength;
     DESCRIPTOR_TYPE_CONFIGURATION,               // bDescriptorType;
     lsb(DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL),  // wTotalLength
-    msb(DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL),
+    msb(DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL),  //
     1,                                           // bNumInterfaces
     1,                                           // bConfigurationValue
     0,                                           // iConfiguration
@@ -212,7 +212,7 @@ static const uint8_t PROGMEM descriptors[] = {
     1,                                           // bNumDescriptors
     DESCRIPTOR_TYPE_HID_REPORT,                  // bDescriptorType
     lsb(DESCRIPTOR_LENGTH_HID_REPORT),           // wDescriptorLength
-    msb(DESCRIPTOR_LENGTH_HID_REPORT),
+    msb(DESCRIPTOR_LENGTH_HID_REPORT),           //
 
     // Endpoint descriptor
     DESCRIPTOR_LENGTH_ENDPOINT,                  // bLength
@@ -228,38 +228,38 @@ static const uint8_t PROGMEM descriptors[] = {
     1,                                           // bInterval (1ms polling interval)
 
     // HID report descriptor (boot keyboard)
-    0x05, 0x01,  // Usage Page (Generic Desktop)
-    0x09, 0x06,  // Usage (Keyboard)
-    0xa1, 0x01,  // Collection (Application)
-    0x75, 0x01,  //   Report Size (1)
-    0x95, 0x08,  //   Report Count (8)
-    0x05, 0x07,  //   Usage Page (Key Codes)
-    0x19, 0xe0,  //   Usage Minimum (224)
-    0x29, 0xe7,  //   Usage Maximum (231)
-    0x15, 0x00,  //   Logical Minimum (0)
-    0x25, 0x01,  //   Logical Maximum (1)
-    0x81, 0x02,  //   Input (Data, Variable, Absolute)
-    0x95, 0x01,  //   Report Count (1)
-    0x75, 0x08,  //   Report Size (8)
-    0x81, 0x01,  //   Input (Constant)
-    0x95, 0x05,  //   Report Count (5)
-    0x75, 0x01,  //   Report Size (1)
-    0x05, 0x08,  //   Usage Page (LEDs)
-    0x19, 0x01,  //   Usage Minimum (1)
-    0x29, 0x05,  //   Usage Maximum (5)
-    0x91, 0x02,  //   Output (Data, Variable, Absolute)
-    0x95, 0x01,  //   Report Count (1)
-    0x75, 0x03,  //   Report Size (3)
-    0x91, 0x01,  //   Output (Constant)
-    0x95, 0x06,  //   Report Count (6)
-    0x75, 0x08,  //   Report Size (8)
-    0x15, 0x00,  //   Logical Minimum (0)
-    0x25, 0xff,  //   Logical Maximum(255)
-    0x05, 0x07,  //   Usage Page (Key Codes)
-    0x19, 0x00,  //   Usage Minimum (0)
-    0x29, 0xff,  //   Usage Maximum (255)
-    0x81, 0x00,  //   Input (Data, Array)
-    0xc0,        // End Collection
+    0x05, 0x01,                                  // Usage Page (Generic Desktop)
+    0x09, 0x06,                                  // Usage (Keyboard)
+    0xa1, 0x01,                                  // Collection (Application)
+    0x75, 0x01,                                  //   Report Size (1)
+    0x95, 0x08,                                  //   Report Count (8)
+    0x05, 0x07,                                  //   Usage Page (Key Codes)
+    0x19, 0xe0,                                  //   Usage Minimum (224)
+    0x29, 0xe7,                                  //   Usage Maximum (231)
+    0x15, 0x00,                                  //   Logical Minimum (0)
+    0x25, 0x01,                                  //   Logical Maximum (1)
+    0x81, 0x02,                                  //   Input (Data, Variable, Absolute)
+    0x95, 0x01,                                  //   Report Count (1)
+    0x75, 0x08,                                  //   Report Size (8)
+    0x81, 0x01,                                  //   Input (Constant)
+    0x95, 0x05,                                  //   Report Count (5)
+    0x75, 0x01,                                  //   Report Size (1)
+    0x05, 0x08,                                  //   Usage Page (LEDs)
+    0x19, 0x01,                                  //   Usage Minimum (1)
+    0x29, 0x05,                                  //   Usage Maximum (5)
+    0x91, 0x02,                                  //   Output (Data, Variable, Absolute)
+    0x95, 0x01,                                  //   Report Count (1)
+    0x75, 0x03,                                  //   Report Size (3)
+    0x91, 0x01,                                  //   Output (Constant)
+    0x95, 0x06,                                  //   Report Count (6)
+    0x75, 0x08,                                  //   Report Size (8)
+    0x15, 0x00,                                  //   Logical Minimum (0)
+    0x25, 0xff,                                  //   Logical Maximum(255)
+    0x05, 0x07,                                  //   Usage Page (Key Codes)
+    0x19, 0x00,                                  //   Usage Minimum (0)
+    0x29, 0xff,                                  //   Usage Maximum (255)
+    0x81, 0x00,                                  //   Input (Data, Array)
+    0xc0,                                        // End Collection
 };
 
 /*
@@ -279,15 +279,13 @@ static const uint8_t PROGMEM descriptors[] = {
 
 #define MASK_UDADDR 0b01111111
 
-typedef struct
-{
+typedef struct {
     uint8_t bmRequestType;
     uint8_t bRequest;
     uint16_t wValue;
     uint16_t wIndex;
     uint16_t wLength;
-}
-setup_packet_t;
+} setup_packet_t;
 
 static void setup_packet_recv(setup_packet_t *setup_packet)
 {
@@ -351,8 +349,8 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet)
     }
 
     // Configuration descriptor
-    else
-    if (descriptor_type == DESCRIPTOR_TYPE_CONFIGURATION &&
+    else if (
+        descriptor_type == DESCRIPTOR_TYPE_CONFIGURATION &&
         descriptor_index == 0 &&
         setup_packet->wIndex == 0)
     {
@@ -362,8 +360,8 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet)
     }
 
     // HID interface descriptor
-    else
-    if (descriptor_type == DESCRIPTOR_TYPE_HID_INTERFACE &&
+    else if (
+        descriptor_type == DESCRIPTOR_TYPE_HID_INTERFACE &&
         descriptor_index == 0 &&
         setup_packet->wIndex == 0)
     {
@@ -373,8 +371,8 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet)
     }
 
     // HID report descriptor
-    else
-    if (descriptor_type == DESCRIPTOR_TYPE_HID_REPORT &&
+    else if (
+        descriptor_type == DESCRIPTOR_TYPE_HID_REPORT &&
         descriptor_index == 0 &&
         setup_packet->wIndex == 0)
     {
@@ -409,7 +407,8 @@ static void update_endpoint_control()
     uint8_t recipient = (setup_packet.bmRequestType & 0b00011111);
 
     // Get descriptor requests
-    if (setup_packet.bRequest == CONTROL_REQUEST_GET_DESCRIPTOR &&
+    if (
+        setup_packet.bRequest == CONTROL_REQUEST_GET_DESCRIPTOR &&
         direction == CONTROL_DIRECTION_DEVICE_TO_HOST &&
         type == CONTROL_TYPE_STANDARD)
     {
@@ -417,8 +416,8 @@ static void update_endpoint_control()
     }
 
     // Set address requests
-    else
-    if (setup_packet.bRequest == CONTROL_REQUEST_SET_ADDRESS &&
+    else if (
+        setup_packet.bRequest == CONTROL_REQUEST_SET_ADDRESS &&
         direction == CONTROL_DIRECTION_HOST_TO_DEVICE &&
         type == CONTROL_TYPE_STANDARD &&
         recipient == CONTROL_RECIPIENT_DEVICE &&
@@ -438,8 +437,8 @@ static void update_endpoint_control()
 
     // Set configuration requests
     // Take no action, the device remains configured
-    else
-    if (setup_packet.bRequest == CONTROL_REQUEST_SET_CONFIGURATION &&
+    else if (
+        setup_packet.bRequest == CONTROL_REQUEST_SET_CONFIGURATION &&
         direction == CONTROL_DIRECTION_HOST_TO_DEVICE &&
         type == CONTROL_TYPE_STANDARD &&
         recipient == CONTROL_RECIPIENT_DEVICE &&

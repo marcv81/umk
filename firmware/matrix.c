@@ -5,12 +5,10 @@
 #include "matrix_left.h"
 #include "debounce.h"
 
-static union
-{
+static union {
     bool list[MATRIX_KEYS];
     bool array[MATRIX_ROWS][MATRIX_COLUMNS];
-}
-pressed;
+} pressed;
 
 void matrix_init()
 {

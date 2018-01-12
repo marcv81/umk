@@ -35,7 +35,7 @@ int main()
     led_3(false);
 
     // Main loop
-    while(true)
+    while (true)
     {
         matrix_update();
         controller_update();
