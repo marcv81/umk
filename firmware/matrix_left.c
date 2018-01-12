@@ -58,8 +58,7 @@ void matrix_left_select_column(uint8_t column)
 // Return a uint8_t, one bit per row, a set bit is a pressed key
 uint8_t matrix_left_read_rows()
 {
-    uint8_t data;
-    i2c_read_byte(MCP23018_ADDR, MCP23018_GPIOB, &data);
+    uint8_t data = i2c_read_byte(MCP23018_ADDR, MCP23018_GPIOB);
     return
         (data & 0b00100000 ? 0 : 0b00000001) |
         (data & 0b00010000 ? 0 : 0b00000010) |
