@@ -117,7 +117,7 @@ class Layer:
 
 class Keymap:
 
-    def __init__(self, layer1, layer2, rows, columns, reverse_rows):
+    def __init__(self, layer1, layer2, rows, columns, reverse_rows=False):
         self.layer1 = Layer.create(
             layer1, rows, columns, reverse_rows)
         self.layer2 = Layer.create(
