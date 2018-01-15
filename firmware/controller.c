@@ -122,13 +122,23 @@ static void update_keymap()
 }
 
 /*
- * Coroutine
+ * Exported functions
  */
+
+void controller_init()
+{
+    matrix_init();
+    usb_init();
+}
 
 void controller_update()
 {
+    matrix_update();
+
     update_debouncer();
     update_pressed_layer();
     update_keymap();
+
     usb_keyboard_report_update(&report);
+    usb_update();
 }

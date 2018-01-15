@@ -41,6 +41,7 @@ static void init_rows()
 
 void matrix_left_init()
 {
+    i2c_init();
     init_columns();
     init_rows();
 }

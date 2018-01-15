@@ -2,9 +2,6 @@
 #include <util/delay.h>
 
 #include "led.h"
-#include "matrix.h"
-#include "usb.h"
-#include "i2c.h"
 #include "controller.h"
 
 int main()
@@ -22,10 +19,8 @@ int main()
     _delay_ms(100);
     led_3(true);
 
-    // Initialize everything else
-    i2c_init();
-    matrix_init();
-    usb_init();
+    // Initialize everything
+    controller_init();
 
     // LEDs off
     led_1(false);
@@ -35,10 +30,5 @@ int main()
     led_3(false);
 
     // Main loop
-    while (true)
-    {
-        matrix_update();
-        controller_update();
-        usb_update();
-    }
+    while (true) controller_update();
 }
