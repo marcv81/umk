@@ -1,13 +1,15 @@
-#include <util/twi.h>
-
 #include "i2c.h"
 
 #include "config.h"
 
+#include <util/twi.h>
+
+#define TWSR_PRESCALER_MASK 0b11111100
+
 void i2c_init()
 {
     // Clear the prescaler bits in TWSR
-    TWSR &= 0b11111100;
+    TWSR &= TWSR_PRESCALER_MASK;
     // Set TWBR to achieve the specified I2C frequency
     TWBR = ((F_CPU / I2C_FREQUENCY) - 16) / 2;
 }

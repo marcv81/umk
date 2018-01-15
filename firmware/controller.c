@@ -1,12 +1,14 @@
 #include "controller.h"
 
-#include <avr/pgmspace.h>
+#include "config.h"
+
+#include "matrix.h"
+#include "usb.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
-#include "matrix.h"
-#include "usb.h"
+#include <avr/pgmspace.h>
 
 /*
  * Key debouncer

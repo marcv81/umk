@@ -1,8 +1,12 @@
+#include "controller.h"
+#include "led.h"
+
+#include <stdbool.h>
+
 #include <avr/power.h>
 #include <util/delay.h>
 
-#include "led.h"
-#include "controller.h"
+#define DELAY_LED 100
 
 int main()
 {
@@ -14,9 +18,9 @@ int main()
 
     // LEDs on
     led_1(true);
-    _delay_ms(100);
+    _delay_ms(DELAY_LED);
     led_2(true);
-    _delay_ms(100);
+    _delay_ms(DELAY_LED);
     led_3(true);
 
     // Initialize everything
@@ -24,9 +28,9 @@ int main()
 
     // LEDs off
     led_1(false);
-    _delay_ms(100);
+    _delay_ms(DELAY_LED);
     led_2(false);
-    _delay_ms(100);
+    _delay_ms(DELAY_LED);
     led_3(false);
 
     // Main loop
