@@ -8,7 +8,7 @@
 
 // Keys pressed/released less than N consecutive cycles are ignored
 // To define N set the N least significant bits of DEBOUNCER_MASK
-#define DEBOUNCER_MASK 0b00011111 // N = 5
+#define DEBOUNCER_MASK 0b0000000000000111 // N = 3
 
 // I2C bus frequency
 #define I2C_FREQUENCY 400000

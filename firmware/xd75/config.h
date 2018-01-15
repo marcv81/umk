@@ -8,6 +8,6 @@
 
 // Keys pressed/released less than N consecutive cycles are ignored
 // To define N set the N least significant bits of DEBOUNCER_MASK
-#define DEBOUNCER_MASK 0b00000001 // N = 1, debouncer off
+#define DEBOUNCER_MASK 0b0000001111111111 // N = 10
 
 #endif // CONFIG_H

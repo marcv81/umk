@@ -14,7 +14,7 @@
  * Key debouncer
  */
 
-uint8_t debouncer_history[MATRIX_KEYS];
+uint16_t debouncer_history[MATRIX_KEYS];
 
 // Update the debouncer with the current state of each key in the matrix
 static void update_debouncer()
