@@ -1,4 +1,1 @@
-*.o
-*.elf
-*.hex
-/firmware/keymap.c
+/output
