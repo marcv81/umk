@@ -1,14 +1,7 @@
 #include "matrix.h"
 
-#include "config.h"
 #include "matrix_right.h"
 #include "matrix_left.h"
-#include "debounce.h"
-
-static union {
-    bool list[MATRIX_KEYS];
-    bool array[MATRIX_ROWS][MATRIX_COLUMNS];
-} pressed;
 
 void matrix_init()
 {
@@ -21,17 +14,8 @@ static void update_rows(uint8_t rows, uint8_t column)
 {
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
     {
-        bool key_pressed = (rows & (1 << row));
-        debounce_update(row, column, key_pressed);
-        switch(debounce_state(row, column))
-        {
-            case debounce_released:
-                pressed.array[row][column] = false;
-                break;
-            case debounce_pressed:
-                pressed.array[row][column] = true;
-                break;
-        }
+        bool pressed = (rows & (1 << row));
+        matrix_pressed[row * MATRIX_COLUMNS + column] = pressed;
     }
 }
 
@@ -49,10 +33,4 @@ void matrix_update()
         update_rows(matrix_left_read_rows(), left_column);
         update_rows(matrix_right_read_rows(), right_column);
     }
-}
-
-// Return whether a key is pressed or not
-bool matrix_pressed(uint8_t key)
-{
-    return pressed.list[key];
 }

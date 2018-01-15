@@ -1,87 +1,134 @@
 #include "controller.h"
 
+#include <avr/pgmspace.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "config.h"
 #include "matrix.h"
 #include "usb.h"
-#include "usb_keyboard.h"
 
-// Modifiers layout
-#define LEFT_CTRL 42
-#define RIGHT_CTRL 55
-#define LEFT_SHIFT 28
-#define RIGHT_SHIFT 41
-#define LEFT_GUI 14
-#define RIGHT_GUI 27
+/*
+ * Key debouncer
+ */
 
-static usb_keyboard_report_t keyboard_report;
+uint8_t debouncer_history[MATRIX_KEYS];
 
-// Keys layout
-static const uint8_t scancodes[MATRIX_KEYS] =
+// Update the debouncer with the current state of each key in the matrix
+static void update_debouncer()
 {
-    0, 0, KEY_TAB, KEY_SPACE, 0, 0, 0, 0, 0, 0, KEY_BACKSPACE, KEY_ENTER, 0, 0,
-    0, KEY_TILDE, KEY_BACKSLASH, KEY_LEFT, KEY_RIGHT, 0, 0, 0, 0, KEY_DOWN, KEY_UP, KEY_LEFT_BRACE, KEY_RIGHT_BRACE, 0,
-    0, KEY_Z, KEY_X, KEY_C, KEY_V, KEY_B, 0, 0, KEY_N, KEY_M, KEY_COMMA, KEY_PERIOD, KEY_SLASH, 0,
-    0, KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, 0, 0, KEY_H, KEY_J, KEY_K, KEY_L, KEY_SEMICOLON, 0,
-    KEY_QUOTE, KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, 0, 0, KEY_Y, KEY_U, KEY_I, KEY_O, KEY_P, KEY_MINUS,
-    KEY_ESC, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, 0, 0, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0, KEY_EQUAL,
-};
-
-// Update the keys according to the matrix state
-static void update_keys()
-{
-    // Reset the keys
-    for (uint8_t i=0; i<6; i++)
+    for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        keyboard_report.keys[i] = 0;
+        // Left shift the key history: space is made on the right
+        // for a new event, and the oldest event is shifted out
+        debouncer_history[key] <<= 1;
+        if (matrix_pressed[key]) debouncer_history[key] |= 1;
     }
+}
 
-    // Accumulate at most 6 scancodes
-    uint8_t keys_index = 0;
-    for (uint8_t i=0; i<MATRIX_KEYS; i++)
+static inline bool is_released(uint8_t key)
+{
+    // Key released for N cycles
+    return (debouncer_history[key] & DEBOUNCER_MASK) == 0;
+}
+
+static inline bool is_pressed(uint8_t key)
+{
+    // Key pressed for N cycles
+    return (debouncer_history[key] & DEBOUNCER_MASK) == DEBOUNCER_MASK;
+}
+
+/*
+ * Pressed keys/layers
+ */
+
+static uint8_t active_layer = 1;
+
+// Pressed keys/layers: active layer at the time
+// a key was pressed, or 0 if not currently pressed
+static uint8_t pressed_layer[MATRIX_KEYS];
+
+// Update the pressed keys/layers from the current
+// (debounced) state of each key and the active layer
+static void update_pressed_layer()
+{
+    for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        // Skip the keys with no scancode
-        if (scancodes[i] == 0) continue;
-
-        // Skip the keys which are not pressed
-        if (!matrix_pressed(i)) continue;
-
-        if (keys_index < 6)
+        if (pressed_layer[key] == 0)
         {
-            keyboard_report.keys[keys_index++] = scancodes[i];
+            if (is_pressed(key)) pressed_layer[key] = active_layer;
+        }
+        else
+        {
+            if (is_released(key)) pressed_layer[key] = 0;
         }
     }
 }
 
-// Update the modifiers according to the matrix state
-static void update_modifiers()
+/*
+ * Keymap effects lookup
+ */
+
+#define KEY_TYPE_GENERAL 1
+#define KEY_TYPE_MODIFIER 2
+#define KEY_TYPE_LAYER 3
+
+// Generated keymap
+#include "keymap.c"
+
+usb_keyboard_report_t report;
+
+// Update the active layer and the keyboard report
+// from the pressed keys/layers and the keymap
+static void update_keymap()
 {
-    // Reset the modifiers
-    keyboard_report.modifiers = 0;
+    // Reset the active layer
+    active_layer = 1;
 
-    // Update control
-    if (matrix_pressed(LEFT_CTRL) || matrix_pressed(RIGHT_CTRL))
-    {
-        keyboard_report.modifiers |= KEY_CTRL;
-    }
+    // Reset the keyboard report
+    report.modifiers = 0;
+    for (uint8_t i=0; i<6; i++) report.keys[i] = 0;
 
-    // Update shift
-    if (matrix_pressed(LEFT_SHIFT) || matrix_pressed(RIGHT_SHIFT))
-    {
-        keyboard_report.modifiers |= KEY_SHIFT;
-    }
+    uint8_t key_index = 0;
 
-    // Update GUI
-    if (matrix_pressed(LEFT_GUI) || matrix_pressed(RIGHT_GUI))
+    for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        keyboard_report.modifiers |= KEY_GUI;
+        uint8_t layer = pressed_layer[key];
+        if (layer == 0) continue;
+
+        // Look up the key effect (type and value) from the appropriate layer
+        uint16_t offset = ((MATRIX_KEYS * (layer - 1)) + key) << 1;
+        uint8_t type = pgm_read_byte(keymap + offset);
+        uint8_t value = pgm_read_byte(keymap + offset + 1);
+
+        switch (type)
+        {
+            // General keys
+            case KEY_TYPE_GENERAL:
+                if (key_index < 6) report.keys[key_index++] = value;
+                break;
+
+            // Modifier keys
+            case KEY_TYPE_MODIFIER:
+                report.modifiers |= value;
+                break;
+
+            // Layer keys
+            case KEY_TYPE_LAYER:
+                if (value > active_layer) active_layer = value;
+                break;
+        }
     }
 }
 
+/*
+ * Coroutine
+ */
+
 void controller_update()
 {
-    update_keys();
-    update_modifiers();
-    usb_keyboard_report_update(&keyboard_report);
+    update_debouncer();
+    update_pressed_layer();
+    update_keymap();
+    usb_keyboard_report_update(&report);
 }

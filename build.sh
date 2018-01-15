@@ -3,7 +3,10 @@ set -e
 set -x
 
 # Clean
-rm -f firmware/*.o firmware/*.elf firmware/*.hex contrib/*.o
+rm -f firmware/*.o firmware/*.elf firmware/*.hex contrib/*.o firmware/keymap.c
+
+# Generate keymap
+python3 keymap/build.py > firmware/keymap.c
 
 CFLAGS="\
 -mmcu=atmega32u4 \
@@ -22,7 +25,6 @@ compile firmware/led
 compile firmware/matrix_right
 compile firmware/matrix_left
 compile firmware/matrix
-compile firmware/debounce
 compile firmware/controller
 compile firmware/usb
 compile firmware/i2c
@@ -35,7 +37,6 @@ firmware/led.o \
 firmware/matrix_right.o \
 firmware/matrix_left.o \
 firmware/matrix.o \
-firmware/debounce.o \
 firmware/controller.o \
 firmware/usb.o \
 firmware/i2c.o \
