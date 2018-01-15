@@ -3,7 +3,7 @@ set -e
 set -x
 
 # Clean
-rm -f firmware/*.o firmware/*.elf firmware/*.hex contrib/*.o firmware/keymap.c
+rm -f firmware/*.o firmware/*.elf firmware/*.hex firmware/keymap.c
 
 # Generate keymap
 python3 keymap/build.py > firmware/keymap.c
@@ -12,11 +12,10 @@ CFLAGS="\
 -mmcu=atmega32u4 \
 -DF_CPU=16000000UL \
 -DF_OSC=16000000UL \
--DMILLIS_TIMER=MILLIS_TIMER1 \
 -Os \
 -std=c99"
 
-INCS="-Ifirmware -Icontrib"
+INCS="-Ifirmware"
 
 # Compile
 function compile { avr-gcc -c $CFLAGS $INCS $1.c -o $1.o; }
@@ -28,7 +27,6 @@ compile firmware/matrix
 compile firmware/controller
 compile firmware/usb
 compile firmware/i2c
-compile contrib/millis
 
 # Link
 avr-gcc $CFLAGS \
@@ -40,7 +38,6 @@ firmware/matrix.o \
 firmware/controller.o \
 firmware/usb.o \
 firmware/i2c.o \
-contrib/millis.o \
 -o firmware/firmware.elf
 
 # Translate
