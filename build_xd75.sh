@@ -32,3 +32,6 @@ avr-gcc $CFLAGS output/*.o -o output/xd75.elf
 avr-objcopy \
 -R .eeprom -R .fuse -R .lock -R .signature \
 -O ihex output/xd75.elf output/xd75.hex
+
+# Summary
+avr-size output/xd75.hex

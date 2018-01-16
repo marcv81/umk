@@ -36,3 +36,6 @@ avr-gcc $CFLAGS output/*.o -o output/ergodox.elf
 avr-objcopy \
 -R .eeprom -R .fuse -R .lock -R .signature \
 -O ihex output/ergodox.elf output/ergodox.hex
+
+# Summary
+avr-size output/ergodox.hex
