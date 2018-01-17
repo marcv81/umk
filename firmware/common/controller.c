@@ -11,91 +11,146 @@
 #include <avr/pgmspace.h>
 
 /*
- * Key debouncer
+ * Matrix debouncer
  */
 
-uint16_t debouncer_history[MATRIX_KEYS];
+static struct {
+    uint16_t history[MATRIX_KEYS];
+} debouncer;
 
 // Update the debouncer with the current state of each key in the matrix
-static void update_debouncer()
+static void debouncer_update()
 {
     for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
         // Left shift the key history: space is made on the right
         // for a new event, and the oldest event is shifted out
-        debouncer_history[key] <<= 1;
-        if (matrix_pressed[key]) debouncer_history[key] |= 1;
+        debouncer.history[key] <<= 1;
+        if (matrix_pressed[key]) debouncer.history[key] |= 1;
     }
 }
 
-static inline bool is_released(uint8_t key)
+static inline bool debouncer_released(uint8_t key)
 {
     // Key released for N cycles
-    return (debouncer_history[key] & DEBOUNCER_MASK) == 0;
+    return (debouncer.history[key] & DEBOUNCER_MASK) == 0;
 }
 
-static inline bool is_pressed(uint8_t key)
+static inline bool debouncer_pressed(uint8_t key)
 {
     // Key pressed for N cycles
-    return (debouncer_history[key] & DEBOUNCER_MASK) == DEBOUNCER_MASK;
+    return (debouncer.history[key] & DEBOUNCER_MASK) == DEBOUNCER_MASK;
 }
 
 /*
- * Pressed keys/layers
+ * Layers manager
  */
 
-static uint8_t active_layer = 1;
+static struct {
+    // Active layer
+    uint8_t active;
+    // Active layer at the time a key was pressed, or 0 if released
+    uint8_t pressed[MATRIX_KEYS];
+} layers_manager;
 
-// Pressed keys/layers: active layer at the time
-// a key was pressed, or 0 if not currently pressed
-static uint8_t pressed_layer[MATRIX_KEYS];
+// Reset the active layer
+static void layers_manager_reset_active()
+{
+    layers_manager.active = 1;
+}
 
-// Update the pressed keys/layers from the current
-// (debounced) state of each key and the active layer
-static void update_pressed_layer()
+// Raise the active layer
+static void layers_manager_raise_active(uint8_t layer)
+{
+    if (layer > layers_manager.active) layers_manager.active = layer;
+}
+
+// Update the pressed layer for newly pressed/released keys
+static void layers_manager_update_pressed()
 {
     for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        if (pressed_layer[key] == 0)
+        if (layers_manager.pressed[key] == 0)
         {
-            if (is_pressed(key)) pressed_layer[key] = active_layer;
+            if (debouncer_pressed(key))
+            {
+                layers_manager.pressed[key] = layers_manager.active;
+            }
         }
         else
         {
-            if (is_released(key)) pressed_layer[key] = 0;
+            if (debouncer_released(key))
+            {
+                layers_manager.pressed[key] = 0;
+            }
         }
     }
 }
 
 /*
- * Keymap effects lookup
+ * Keyboard report builder
+ */
+
+static struct {
+    uint8_t key_index;
+    usb_keyboard_report_t report;
+} report_builder;
+
+static void report_builder_reset()
+{
+    report_builder.key_index = 0;
+    for (uint8_t i=0; i<6; i++)
+    {
+        report_builder.report.keys[i] = 0;
+    }
+    report_builder.report.modifiers = 0;
+}
+
+static void report_builder_add_key(uint8_t code)
+{
+    if (report_builder.key_index < 6)
+    {
+        report_builder.report.keys[report_builder.key_index++] = code;
+    }
+}
+
+static void report_builder_add_modifier(uint8_t mask)
+{
+    report_builder.report.modifiers |= mask;
+}
+
+/*
+ * Controller core
  */
 
 #define KEY_TYPE_GENERAL 1
 #define KEY_TYPE_MODIFIER 2
 #define KEY_TYPE_LAYER 3
 
+void controller_init()
+{
+    matrix_init();
+    usb_init();
+}
+
 // Generated keymap
 #include "keymap.c"
 
-usb_keyboard_report_t report;
-
-// Update the active layer and the keyboard report
-// from the pressed keys/layers and the keymap
-static void update_keymap()
+void controller_update()
 {
-    // Reset the active layer
-    active_layer = 1;
+    // Update everything
+    usb_update();
+    matrix_update();
+    debouncer_update();
+    layers_manager_update_pressed();
 
-    // Reset the keyboard report
-    report.modifiers = 0;
-    for (uint8_t i=0; i<6; i++) report.keys[i] = 0;
+    layers_manager_reset_active();
+    report_builder_reset();
 
-    uint8_t key_index = 0;
-
+    // Calculate the active layer and rebuild the keyboard report
     for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        uint8_t layer = pressed_layer[key];
+        uint8_t layer = layers_manager.pressed[key];
         if (layer == 0) continue;
 
         // Look up the key effect (type and value) from the appropriate layer
@@ -107,40 +162,21 @@ static void update_keymap()
         {
             // General keys
             case KEY_TYPE_GENERAL:
-                if (key_index < 6) report.keys[key_index++] = value;
+                report_builder_add_key(value);
                 break;
 
             // Modifier keys
             case KEY_TYPE_MODIFIER:
-                report.modifiers |= value;
+                report_builder_add_modifier(value);
                 break;
 
             // Layer keys
             case KEY_TYPE_LAYER:
-                if (value > active_layer) active_layer = value;
+                layers_manager_raise_active(value);
                 break;
         }
     }
-}
 
-/*
- * Exported functions
- */
-
-void controller_init()
-{
-    matrix_init();
-    usb_init();
-}
-
-void controller_update()
-{
-    matrix_update();
-
-    update_debouncer();
-    update_pressed_layer();
-    update_keymap();
-
-    usb_keyboard_report_update(&report);
-    usb_update();
+    // Send the rebuilt keyboard report
+    usb_keyboard_report_update(&report_builder.report);
 }
