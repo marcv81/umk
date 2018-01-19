@@ -77,6 +77,9 @@ keycodes = {
     "Left":  (0x01, 0x50),        # Left Arrow
     "Down":  (0x01, 0x51),        # Down Arrow
     "Up":    (0x01, 0x52),        # Up Arrow
+    "Mute":  (0x01, 0x7f),        # Mute
+    "Vol+":  (0x01, 0x80),        # Volume Up
+    "Vol-":  (0x01, 0x81),        # Volume Down
 
     # Modifer keys
     "Ctrl":  (0x02, 0b00000001),  # Control

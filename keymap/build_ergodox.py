@@ -7,7 +7,7 @@ layer1 = """
 Ctrl    A     S     D     F     G    xxx   xxx    H     J     K     L     ;    Ctrl
 Shift   Z     X     C     V     B     `     \     N     M     ,     .     /   Shift
 Layer Super  Alt   ---   ---   xxx   xxx   xxx   xxx   ---   ---   Alt  Super Layer
- xxx   ---   Tab  Space  ---   ---   ---   ---   ---   ---  BckSp Enter  ---   xxx
+ xxx   ---   Tab  Space  Mute  Vol-  Vol+  ---   ---   ---  BckSp Enter  ---   xxx
 
 """
 
