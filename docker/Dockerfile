@@ -7,6 +7,6 @@ avr-libc \
 python3 \
 && rm -rf /var/lib/apt/lists/*
 
-VOLUME /ergodox
-WORKDIR /ergodox
+VOLUME /umk
+WORKDIR /umk
 CMD /bin/bash
