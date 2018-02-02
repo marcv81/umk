@@ -108,10 +108,12 @@ static void report_builder_reset()
 
 static void report_builder_add_key(uint8_t code)
 {
-    if (report_builder.key_index < 6)
+    if (report_builder.key_index >= 6) return;
+    for (uint8_t i=0; i<report_builder.key_index; i++)
     {
-        report_builder.report.keys[report_builder.key_index++] = code;
+        if (report_builder.report.keys[i] == code) return;
     }
+    report_builder.report.keys[report_builder.key_index++] = code;
 }
 
 static void report_builder_add_modifier(uint8_t mask)
