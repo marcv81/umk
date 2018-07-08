@@ -19,3 +19,8 @@ Please install the AVR toolchain and Python 3, or build in the provided Docker c
     docker run -it --rm -v `pwd`:/umk umk-builder
 
 There is a build script for each of the supported keyboards.
+
+## Flash
+
+    dfu-programmer atmega32u4 erase
+    dfu-programmer atmega32u4 flash <firmware.hex>
