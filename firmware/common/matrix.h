@@ -1,11 +1,10 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include "config.h"
-
 #include <stdbool.h>
+#include <stdint.h>
 
-bool matrix_pressed[MATRIX_KEYS];
+bool matrix_pressed(uint8_t key);
 
 void matrix_init();
 void matrix_update();

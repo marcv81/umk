@@ -2,90 +2,12 @@
 
 #include "config.h"
 
-#include "matrix.h"
+#include "keys.h"
 #include "usb.h"
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include <avr/pgmspace.h>
-
-/*
- * Matrix debouncer
- */
-
-static struct {
-    uint16_t history[MATRIX_KEYS];
-} debouncer;
-
-// Update the debouncer with the current state of each key in the matrix
-static void debouncer_update()
-{
-    for (uint8_t key=0; key<MATRIX_KEYS; key++)
-    {
-        // Left shift the key history: space is made on the right
-        // for a new event, and the oldest event is shifted out
-        debouncer.history[key] <<= 1;
-        if (matrix_pressed[key]) debouncer.history[key] |= 1;
-    }
-}
-
-static inline bool debouncer_released(uint8_t key)
-{
-    // Key released for N cycles
-    return (debouncer.history[key] & DEBOUNCER_MASK) == 0;
-}
-
-static inline bool debouncer_pressed(uint8_t key)
-{
-    // Key pressed for N cycles
-    return (debouncer.history[key] & DEBOUNCER_MASK) == DEBOUNCER_MASK;
-}
-
-/*
- * Layers manager
- */
-
-static struct {
-    // Active layer
-    uint8_t active;
-    // Active layer at the time a key was pressed, or 0 if released
-    uint8_t pressed[MATRIX_KEYS];
-} layers_manager;
-
-// Reset the active layer
-static void layers_manager_reset_active()
-{
-    layers_manager.active = 1;
-}
-
-// Raise the active layer
-static void layers_manager_raise_active(uint8_t layer)
-{
-    if (layer > layers_manager.active) layers_manager.active = layer;
-}
-
-// Update the pressed layer for newly pressed/released keys
-static void layers_manager_update_pressed()
-{
-    for (uint8_t key=0; key<MATRIX_KEYS; key++)
-    {
-        if (layers_manager.pressed[key] == 0)
-        {
-            if (debouncer_pressed(key))
-            {
-                layers_manager.pressed[key] = layers_manager.active;
-            }
-        }
-        else
-        {
-            if (debouncer_released(key))
-            {
-                layers_manager.pressed[key] = 0;
-            }
-        }
-    }
-}
 
 /*
  * Keyboard report builder
@@ -131,7 +53,7 @@ static void report_builder_add_modifier(uint8_t mask)
 
 void controller_init()
 {
-    matrix_init();
+    keys_init();
     usb_init();
 }
 
@@ -141,22 +63,20 @@ void controller_init()
 void controller_update()
 {
     // Update everything
+    keys_update();
     usb_update();
-    matrix_update();
-    debouncer_update();
-    layers_manager_update_pressed();
 
-    layers_manager_reset_active();
+    keys_reset_layer();
     report_builder_reset();
 
     // Calculate the active layer and rebuild the keyboard report
     for (uint8_t key=0; key<MATRIX_KEYS; key++)
     {
-        uint8_t layer = layers_manager.pressed[key];
-        if (layer == 0) continue;
+        if (!keys_pressed(key)) continue;
 
         // Look up the key effect (type and value) from the appropriate layer
-        uint16_t offset = ((MATRIX_KEYS * (layer - 1)) + key) << 1;
+        uint8_t layer = keys_layer(key);
+        uint16_t offset = ((MATRIX_KEYS * layer) + key) << 1;
         uint8_t type = pgm_read_byte(keymap + offset);
         uint8_t value = pgm_read_byte(keymap + offset + 1);
 
@@ -174,7 +94,7 @@ void controller_update()
 
             // Layer keys
             case KEY_TYPE_LAYER:
-                layers_manager_raise_active(value);
+                keys_raise_layer(value);
                 break;
         }
     }

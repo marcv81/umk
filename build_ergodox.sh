@@ -26,6 +26,7 @@ compile firmware/ergodox matrix_right
 compile firmware/ergodox matrix_left
 compile firmware/ergodox matrix
 compile firmware/common controller
+compile firmware/common keys
 compile firmware/common usb
 compile firmware/common i2c
 

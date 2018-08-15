@@ -1,6 +1,6 @@
 import keymap
 
-layer1 = """
+layer0 = """
 
  Esc    1     2     3     4     5    ---   ---    6     7     8     9     0     =
   '     Q     W     E     R     T     [     \     Y     U     I     O     P     -
@@ -11,7 +11,7 @@ Layer LSup  LAlt   ---   ---   xxx   xxx   xxx   xxx   ---   ---   RAlt  RSup La
 
 """
 
-layer2 = """
+layer1 = """
 
  ---   F1    F2    F3    F4    F5    ---   ---    F6    F7    F8    F9   F10   F11
  ---   ---   ---  PgUp   ---   ---   ---   ---   ---   ---    Up   ---   ---   F12
@@ -22,4 +22,4 @@ Layer LSup  LAlt   ---   ---   xxx   xxx   xxx   xxx   ---   ---   RAlt  RSup La
 
 """
 
-keymap.Keymap(layer1, layer2, rows=6, columns=14, reverse_rows=True).render()
+keymap.Keymap(layer0, layer1, rows=6, columns=14, reverse_rows=True).render()

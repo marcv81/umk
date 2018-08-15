@@ -1,7 +1,12 @@
 #include "matrix.h"
 
+#include "config.h"
+
 #include "matrix_right.h"
 #include "matrix_left.h"
+
+static bool state[MATRIX_KEYS];
+bool matrix_pressed(uint8_t key) { return state[key]; }
 
 void matrix_init()
 {
@@ -15,7 +20,7 @@ static void update_rows(uint8_t rows, uint8_t column)
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
     {
         bool pressed = (rows & (1 << row));
-        matrix_pressed[row * MATRIX_COLUMNS + column] = pressed;
+        state[row * MATRIX_COLUMNS + column] = pressed;
     }
 }
 

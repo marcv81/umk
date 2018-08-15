@@ -1,5 +1,7 @@
 #include "matrix.h"
 
+#include "config.h"
+
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -8,6 +10,9 @@
 
 // Row:    0   1   2   3   4
 // Pin:    D0  D1  D2  D3  D5
+
+static bool state[MATRIX_KEYS];
+bool matrix_pressed(uint8_t key) { return state[key]; }
 
 static void init_rows()
 {
@@ -89,7 +94,7 @@ void matrix_update()
         for (uint8_t column=0; column<MATRIX_COLUMNS; column++)
         {
             bool pressed = (columns & (1 << column));
-            matrix_pressed[row * MATRIX_COLUMNS + column] = pressed;
+            state[row * MATRIX_COLUMNS + column] = pressed;
         }
     }
 }

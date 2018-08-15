@@ -23,6 +23,7 @@ function compile { avr-gcc -c $CFLAGS $INCS $1/$2.c -o output/$2.o; }
 compile firmware/xd75 main
 compile firmware/xd75 matrix
 compile firmware/common controller
+compile firmware/common keys
 compile firmware/common usb
 
 # Link
