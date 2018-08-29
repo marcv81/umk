@@ -82,10 +82,14 @@ keycodes = {
     "Vol-":  (0x01, 0x81),        # Volume Down
 
     # Modifer keys
-    "Ctrl":  (0x02, 0b00000001),  # Control
-    "Shift": (0x02, 0b00000010),  # Shift
-    "Alt":   (0x02, 0b00000100),  # Alt
-    "Super": (0x02, 0b00001000),  # Super
+    "LCtrl": (0x02, 0b00000001),  # Left Control
+    "LShft": (0x02, 0b00000010),  # Left Shift
+    "LAlt":  (0x02, 0b00000100),  # Left Alt
+    "LSup":  (0x02, 0b00001000),  # Left Super
+    "RCtrl": (0x02, 0b00010000),  # Right Control
+    "RShft": (0x02, 0b00100000),  # Right Shift
+    "RAlt":  (0x02, 0b01000000),  # Right Alt
+    "RSup":  (0x02, 0b10000000),  # Right Super
 
     # Layer keys
     "Layer": (0x03, 2),           # Select layer 2
