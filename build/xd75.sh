@@ -7,7 +7,7 @@ rm -rf output
 mkdir -p output
 
 # Generate keymap
-python3 keymap/build_xd75.py > output/keymap.c
+python3 keymap/xd75.py > output/keymap.c
 
 CFLAGS="\
 -mmcu=atmega32u4 \
