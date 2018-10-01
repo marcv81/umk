@@ -2,7 +2,6 @@
 #define MATRIX_H
 
 #include "config.h"
-
 #include <stdbool.h>
 
 void matrix_init();

@@ -1,14 +1,11 @@
 #include "controller.h"
 
 #include "config.h"
-
 #include "matrix.h"
 #include "usb.h"
-
+#include <avr/pgmspace.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <avr/pgmspace.h>
 
 /*
  * Matrix debouncer

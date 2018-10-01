@@ -1,9 +1,8 @@
 #include "usb.h"
 
-#include <stdbool.h>
-
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <stdbool.h>
 
 #define read_bit(r, b) (r & (1 << b))
 #define set_bit(r, b) (r |= (1 << b))

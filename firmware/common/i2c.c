@@ -1,7 +1,6 @@
 #include "i2c.h"
 
 #include "config.h"
-
 #include <util/twi.h>
 
 #define TWSR_PRESCALER_MASK 0b11111100

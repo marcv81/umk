@@ -1,8 +1,6 @@
 #include "controller.h"
-
-#include <stdbool.h>
-
 #include <avr/power.h>
+#include <stdbool.h>
 
 int main()
 {
