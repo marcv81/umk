@@ -6,7 +6,6 @@ It is not recommended for casual users; other firmwares have more features. It i
 
 ## Supported keyboards
 
-- Ergodox
 - XD75
 
 # Hacking
