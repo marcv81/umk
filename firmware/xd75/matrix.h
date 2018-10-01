@@ -5,9 +5,9 @@
 
 #include <stdbool.h>
 
-bool matrix_pressed[MATRIX_KEYS];
-
 void matrix_init();
 void matrix_update();
+
+bool matrix_pressed[MATRIX_KEYS];
 
 #endif // MATRIX_H
