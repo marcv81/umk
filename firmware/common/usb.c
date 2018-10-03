@@ -461,53 +461,69 @@ static void update_endpoint_control()
  * Keyboard endpoint logic
  */
 
-static usb_keyboard_report_t keyboard_report;
+static struct {
+    usb_report_t report;
+    bool transfer_requested;
+} endpoint_keyboard;
 
-static bool keyboard_report_update_requested = false;
-
-// Update the keyboard report
-// Only request an update to the host if the contents changed
-void usb_keyboard_report_update(usb_keyboard_report_t *report)
+// Compare a report with the one in the endpoint
+static bool report_equals(const usb_report_t *report)
 {
-    // Update the keys
+    if (endpoint_keyboard.report.modifiers != report->modifiers)
+    {
+        return false;
+    }
     for (uint8_t i=0; i<6; i++)
     {
-        if (keyboard_report.keys[i] != report->keys[i])
+        if (endpoint_keyboard.report.keys[i] != report->keys[i])
         {
-            keyboard_report.keys[i] = report->keys[i];
-            keyboard_report_update_requested = true;
+            return false;
         }
     }
+    return true;
+}
 
-    // Update the modifiers
-    if (keyboard_report.modifiers != report->modifiers)
+// Copy a report to the endpoint
+static void report_copy(const usb_report_t *report)
+{
+    endpoint_keyboard.report.modifiers = report->modifiers;
+    for (uint8_t i=0; i<6; i++)
     {
-        keyboard_report.modifiers = report->modifiers;
-        keyboard_report_update_requested = true;
+        endpoint_keyboard.report.keys[i] = report->keys[i];
     }
 }
 
-static void keyboard_report_send(usb_keyboard_report_t *report)
+// Transfer the report in the endpoint
+static void report_transfer()
 {
-    UEDATX = report->modifiers;
+    UEDATX = endpoint_keyboard.report.modifiers;
     UEDATX = 0;
     for (uint8_t i=0; i<6; i++)
     {
-        UEDATX = report->keys[i];
+        UEDATX = endpoint_keyboard.report.keys[i];
     }
 }
 
-// Send the keyboard report when there is a pending request
+// Send a report
+// Only request a transfer to the host if the contents changed
+void usb_report_send(const usb_report_t *report)
+{
+    if (report_equals(report)) return;
+    endpoint_keyboard.transfer_requested = true;
+    report_copy(report);
+}
+
+// Transfer the report when there is a pending request
 // and writing on the endpoint is allowed
 static void update_endpoint_keyboard()
 {
-    if (!keyboard_report_update_requested) return;
+    if (!endpoint_keyboard.transfer_requested) return;
     endpoint_select(1);
     if (!read_bit(UEINTX, RWAL)) return;
 
-    keyboard_report_send(&keyboard_report);
+    report_transfer();
     clear_bit(UEINTX, FIFOCON);
-    keyboard_report_update_requested = false;
+    endpoint_keyboard.transfer_requested = false;
 }
 
 /*

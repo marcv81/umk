@@ -90,7 +90,7 @@ static void layers_manager_update_pressed()
 
 static struct {
     uint8_t key_index;
-    usb_keyboard_report_t report;
+    usb_report_t report;
 } report_builder;
 
 static void report_builder_reset()
@@ -177,5 +177,5 @@ void controller_update()
     }
 
     // Send the rebuilt keyboard report
-    usb_keyboard_report_update(&report_builder.report);
+    usb_report_send(&report_builder.report);
 }
