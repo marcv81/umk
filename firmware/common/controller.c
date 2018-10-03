@@ -1,44 +1,12 @@
 #include "controller.h"
 
 #include "config.h"
+#include "debouncer.h"
 #include "matrix.h"
 #include "report_builder.h"
 #include "usb.h"
 #include <avr/pgmspace.h>
 #include <stdbool.h>
-#include <stdint.h>
-
-/*
- * Matrix debouncer
- */
-
-static struct {
-    uint16_t history[MATRIX_KEYS];
-} debouncer;
-
-// Update the debouncer with the current state of each key in the matrix
-static void debouncer_update()
-{
-    for (uint8_t key=0; key<MATRIX_KEYS; key++)
-    {
-        // Left shift the key history: space is made on the right
-        // for a new event, and the oldest event is shifted out
-        debouncer.history[key] <<= 1;
-        if (matrix_pressed[key]) debouncer.history[key] |= 1;
-    }
-}
-
-static inline bool debouncer_released(uint8_t key)
-{
-    // Key released for N cycles
-    return (debouncer.history[key] & DEBOUNCER_MASK) == 0;
-}
-
-static inline bool debouncer_pressed(uint8_t key)
-{
-    // Key pressed for N cycles
-    return (debouncer.history[key] & DEBOUNCER_MASK) == DEBOUNCER_MASK;
-}
 
 /*
  * Layers manager
@@ -63,26 +31,14 @@ static void layers_manager_raise_active(uint8_t layer)
     if (layer > layers_manager.active) layers_manager.active = layer;
 }
 
-// Update the pressed layer for newly pressed/released keys
-static void layers_manager_update_pressed()
+void controller_on_pressed(uint8_t key)
 {
-    for (uint8_t key=0; key<MATRIX_KEYS; key++)
-    {
-        if (layers_manager.pressed[key] == 0)
-        {
-            if (debouncer_pressed(key))
-            {
-                layers_manager.pressed[key] = layers_manager.active;
-            }
-        }
-        else
-        {
-            if (debouncer_released(key))
-            {
-                layers_manager.pressed[key] = 0;
-            }
-        }
-    }
+    layers_manager.pressed[key] = layers_manager.active;
+}
+
+void controller_on_released(uint8_t key)
+{
+    layers_manager.pressed[key] = 0;
 }
 
 /*
@@ -112,7 +68,6 @@ void controller_update()
     usb_update();
     matrix_update();
     debouncer_update();
-    layers_manager_update_pressed();
 
     layers_manager_reset_active();
     report_builder_reset(&controller.report);
