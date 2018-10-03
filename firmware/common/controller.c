@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "matrix.h"
+#include "report_builder.h"
 #include "usb.h"
 #include <avr/pgmspace.h>
 #include <stdbool.h>
@@ -85,46 +86,16 @@ static void layers_manager_update_pressed()
 }
 
 /*
- * Keyboard report builder
- */
-
-static struct {
-    uint8_t key_index;
-    usb_report_t report;
-} report_builder;
-
-static void report_builder_reset()
-{
-    report_builder.key_index = 0;
-    for (uint8_t i=0; i<6; i++)
-    {
-        report_builder.report.keys[i] = 0;
-    }
-    report_builder.report.modifiers = 0;
-}
-
-static void report_builder_add_key(uint8_t code)
-{
-    if (report_builder.key_index >= 6) return;
-    for (uint8_t i=0; i<report_builder.key_index; i++)
-    {
-        if (report_builder.report.keys[i] == code) return;
-    }
-    report_builder.report.keys[report_builder.key_index++] = code;
-}
-
-static void report_builder_add_modifier(uint8_t mask)
-{
-    report_builder.report.modifiers |= mask;
-}
-
-/*
  * Controller core
  */
 
 #define KEY_TYPE_GENERAL 1
 #define KEY_TYPE_MODIFIER 2
 #define KEY_TYPE_LAYER 3
+
+struct {
+    usb_report_t report;
+} controller;
 
 void controller_init()
 {
@@ -144,7 +115,7 @@ void controller_update()
     layers_manager_update_pressed();
 
     layers_manager_reset_active();
-    report_builder_reset();
+    report_builder_reset(&controller.report);
 
     // Calculate the active layer and rebuild the keyboard report
     for (uint8_t key=0; key<MATRIX_KEYS; key++)
@@ -177,5 +148,5 @@ void controller_update()
     }
 
     // Send the rebuilt keyboard report
-    usb_report_send(&report_builder.report);
+    usb_report_send(&controller.report);
 }
