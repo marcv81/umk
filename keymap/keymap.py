@@ -92,7 +92,7 @@ keycodes = {
     "RSup":  (0x02, 0b10000000),  # Right Super
 
     # Layer keys
-    "Layer": (0x03, 2),           # Select layer 2
+    "Layer": (0x03, 1),           # Select layer 1
 
 }
 
@@ -124,11 +124,11 @@ class Layer:
 
 class Keymap:
 
-    def __init__(self, layer1, layer2, rows, columns, reverse_rows=False):
+    def __init__(self, layer0, layer1, rows, columns, reverse_rows=False):
+        self.layer0 = Layer.create(
+            layer0, rows, columns, reverse_rows)
         self.layer1 = Layer.create(
             layer1, rows, columns, reverse_rows)
-        self.layer2 = Layer.create(
-            layer2, rows, columns, reverse_rows)
 
     @staticmethod
     def format_legend(l):
@@ -140,11 +140,11 @@ class Keymap:
     def render(self):
         print("static const PROGMEM uint8_t keymap[4 * MATRIX_KEYS] =")
         print("{")
-        print("\t// Layer 1")
-        for l in self.layer1.legends:
+        print("\t// Layer 0")
+        for l in self.layer0.legends:
             print("\t" + Keymap.format_legend(l))
         print()
-        print("\t// Layer 2")
-        for l in self.layer2.legends:
+        print("\t// Layer 1")
+        for l in self.layer1.legends:
             print("\t" + Keymap.format_legend(l))
         print("};")
