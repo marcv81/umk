@@ -1,13 +1,19 @@
 #include "matrix.h"
 
+#include "debouncer.h"
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-// Column: 0   1   2   3   4   5   6   7   8   9   10  11  12  13  14
-// Pin:    F0  F1  E6  C7  C6  B6  D4  B1  B7  B5  B4  D7  D6  B3  B0
+#define MATRIX_ROWS 5
+#define MATRIX_COLUMNS 15
 
 // Row:    0   1   2   3   4
 // Pin:    D0  D1  D2  D3  D5
+
+// Column: 0   1   2   3   4   5   6   7   8   9   10  11  12  13  14
+// Pin:    F0  F1  E6  C7  C6  B6  D4  B1  B7  B5  B4  D7  D6  B3  B0
 
 static void init_rows()
 {
@@ -78,9 +84,9 @@ static uint16_t read_columns()
         (PINB & 0b00000001 ? 0 : (1 << 14));
 }
 
-// Update the entire matrix
 void matrix_update()
 {
+    uint8_t key = 0;
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
     {
         select_row(row);
@@ -89,7 +95,7 @@ void matrix_update()
         for (uint8_t column=0; column<MATRIX_COLUMNS; column++)
         {
             bool pressed = (columns & (1 << column));
-            matrix_pressed[row * MATRIX_COLUMNS + column] = pressed;
+            debouncer_feed(key++, pressed);
         }
     }
 }

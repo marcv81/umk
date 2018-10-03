@@ -2,9 +2,7 @@
 #define CONFIG_H
 
 // Matrix size
-#define MATRIX_ROWS 5
-#define MATRIX_COLUMNS 15
-#define MATRIX_KEYS (MATRIX_ROWS * MATRIX_COLUMNS)
+#define MATRIX_KEYS (15 * 5)
 
 // Keys pressed/released less than N consecutive cycles are ignored
 // To define N set the N least significant bits of DEBOUNCER_MASK

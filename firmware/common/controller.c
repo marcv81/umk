@@ -1,7 +1,6 @@
 #include "controller.h"
 
 #include "config.h"
-#include "debouncer.h"
 #include "matrix.h"
 #include "keys_list.h"
 #include "report_builder.h"
@@ -97,7 +96,6 @@ void controller_update()
     // Update everything
     usb_update();
     matrix_update();
-    debouncer_update();
 
     // Calculate the active layer and rebuild the keyboard report
     layers_manager_reset_active();
