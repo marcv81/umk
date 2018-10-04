@@ -3,48 +3,22 @@
 #include "config.h"
 #include "matrix.h"
 #include "keys_list.h"
+#include "layers.h"
 #include "report_builder.h"
 #include "usb.h"
 #include <avr/pgmspace.h>
 #include <stdbool.h>
 
-/*
- * Layers manager
- */
-
-static struct {
-    // Active layer
-    uint8_t active;
-    // Active layer at the time a key was pressed
-    uint8_t pressed[MATRIX_KEYS];
-} layers_manager;
-
-// Reset the active layer
-static void layers_manager_reset_active()
-{
-    layers_manager.active = 0;
-}
-
-// Raise the active layer
-static void layers_manager_raise_active(uint8_t layer)
-{
-    if (layer > layers_manager.active) layers_manager.active = layer;
-}
-
 void controller_on_pressed(uint8_t key)
 {
     keys_list_add(key);
-    layers_manager.pressed[key] = layers_manager.active;
+    layers_set(key);
 }
 
 void controller_on_released(uint8_t key)
 {
     keys_list_remove(key);
 }
-
-/*
- * Controller core
- */
 
 #define KEY_TYPE_GENERAL 1
 #define KEY_TYPE_MODIFIER 2
@@ -65,7 +39,7 @@ void controller_init()
 
 void handle_key(uint8_t key)
 {
-    uint8_t layer = layers_manager.pressed[key];
+    uint8_t layer = layers_get(key);
 
     // Look up the key effect (type and value) from the appropriate layer
     uint16_t offset = ((MATRIX_KEYS * layer) + key) << 1;
@@ -86,7 +60,7 @@ void handle_key(uint8_t key)
 
         // Layer keys
         case KEY_TYPE_LAYER:
-            layers_manager_raise_active(value);
+            layers_active_raise(value);
             break;
     }
 }
@@ -98,7 +72,7 @@ void controller_update()
     matrix_update();
 
     // Calculate the active layer and rebuild the keyboard report
-    layers_manager_reset_active();
+    layers_active_reset();
     report_builder_reset(&controller.report);
     keys_list_iterate(&handle_key);
 

@@ -25,6 +25,7 @@ compile firmware/xd75 matrix
 compile firmware/common debouncer
 compile firmware/common controller
 compile firmware/common keys_list
+compile firmware/common layers
 compile firmware/common report_builder
 compile firmware/common usb
 
