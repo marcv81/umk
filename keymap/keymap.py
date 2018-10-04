@@ -2,97 +2,99 @@ import re
 
 keycodes = {
 
-    # General keys
-    "A":     (0x01, 0x04),        # a and A
-    "B":     (0x01, 0x05),        # b and B
-    "C":     (0x01, 0x06),        # c and C
-    "D":     (0x01, 0x07),        # d and D
-    "E":     (0x01, 0x08),        # e and E
-    "F":     (0x01, 0x09),        # f and F
-    "G":     (0x01, 0x0a),        # g and G
-    "H":     (0x01, 0x0b),        # h and H
-    "I":     (0x01, 0x0c),        # i and I
-    "J":     (0x01, 0x0d),        # j and J
-    "K":     (0x01, 0x0e),        # k and K
-    "L":     (0x01, 0x0f),        # l and L
-    "M":     (0x01, 0x10),        # m and M
-    "N":     (0x01, 0x11),        # n and N
-    "O":     (0x01, 0x12),        # o and O
-    "P":     (0x01, 0x13),        # p and P
-    "Q":     (0x01, 0x14),        # q and Q
-    "R":     (0x01, 0x15),        # r and R
-    "S":     (0x01, 0x16),        # s and S
-    "T":     (0x01, 0x17),        # t and T
-    "U":     (0x01, 0x18),        # u and U
-    "V":     (0x01, 0x19),        # v and V
-    "W":     (0x01, 0x1a),        # w and W
-    "X":     (0x01, 0x1b),        # x and X
-    "Y":     (0x01, 0x1c),        # y and Y
-    "Z":     (0x01, 0x1d),        # z and Z
-    "1":     (0x01, 0x1e),        # 1 and !
-    "2":     (0x01, 0x1f),        # 2 and @
-    "3":     (0x01, 0x20),        # 3 and #
-    "4":     (0x01, 0x21),        # 4 and $
-    "5":     (0x01, 0x22),        # 5 and %
-    "6":     (0x01, 0x23),        # 6 and ^
-    "7":     (0x01, 0x24),        # 7 and &
-    "8":     (0x01, 0x25),        # 8 and *
-    "9":     (0x01, 0x26),        # 9 and (
-    "0":     (0x01, 0x27),        # 0 and )
-    "Enter": (0x01, 0x28),        # Enter
-    "Esc":   (0x01, 0x29),        # Escape
-    "BckSp": (0x01, 0x2a),        # Backspace
-    "Tab":   (0x01, 0x2b),        # Tab
-    "Space": (0x01, 0x2c),        # Space
-    "-":     (0x01, 0x2d),        # - and _
-    "=":     (0x01, 0x2e),        # = and +
-    "[":     (0x01, 0x2f),        # [ and {
-    "]":     (0x01, 0x30),        # ] and }
-    "\\":    (0x01, 0x31),        # \ and |
-    ";":     (0x01, 0x33),        # ; and :
-    "'":     (0x01, 0x34),        # ' and "
-    "`":     (0x01, 0x35),        # ` and ~
-    ",":     (0x01, 0x36),        # , and <
-    ".":     (0x01, 0x37),        # . and >
-    "/":     (0x01, 0x38),        # / and ?
-    "F1":    (0x01, 0x3a),        # F1
-    "F2":    (0x01, 0x3b),        # F2
-    "F3":    (0x01, 0x3c),        # F3
-    "F4":    (0x01, 0x3d),        # F4
-    "F5":    (0x01, 0x3e),        # F5
-    "F6":    (0x01, 0x3f),        # F6
-    "F7":    (0x01, 0x40),        # F7
-    "F8":    (0x01, 0x41),        # F8
-    "F9":    (0x01, 0x42),        # F9
-    "F10":   (0x01, 0x43),        # F10
-    "F11":   (0x01, 0x44),        # F11
-    "F12":   (0x01, 0x45),        # F12
-    "Ins":   (0x01, 0x49),        # Insert
-    "Home":  (0x01, 0x4a),        # Home
-    "PgUp":  (0x01, 0x4b),        # Page Up
-    "Del":   (0x01, 0x4c),        # Delete
-    "End":   (0x01, 0x4d),        # End
-    "PgDn":  (0x01, 0x4e),        # Page Down
-    "Right": (0x01, 0x4f),        # Right Arrow
-    "Left":  (0x01, 0x50),        # Left Arrow
-    "Down":  (0x01, 0x51),        # Down Arrow
-    "Up":    (0x01, 0x52),        # Up Arrow
-    "Mute":  (0x01, 0x7f),        # Mute
-    "Vol+":  (0x01, 0x80),        # Volume Up
-    "Vol-":  (0x01, 0x81),        # Volume Down
+    "---":   ("Normal", 0),
 
-    # Modifer keys
-    "LCtrl": (0x02, 0b00000001),  # Left Control
-    "LShft": (0x02, 0b00000010),  # Left Shift
-    "LAlt":  (0x02, 0b00000100),  # Left Alt
-    "LSup":  (0x02, 0b00001000),  # Left Super
-    "RCtrl": (0x02, 0b00010000),  # Right Control
-    "RShft": (0x02, 0b00100000),  # Right Shift
-    "RAlt":  (0x02, 0b01000000),  # Right Alt
-    "RSup":  (0x02, 0b10000000),  # Right Super
+    # Normal keys
+    "A":     ("Normal", 0x04),          # a and A
+    "B":     ("Normal", 0x05),          # b and B
+    "C":     ("Normal", 0x06),          # c and C
+    "D":     ("Normal", 0x07),          # d and D
+    "E":     ("Normal", 0x08),          # e and E
+    "F":     ("Normal", 0x09),          # f and F
+    "G":     ("Normal", 0x0a),          # g and G
+    "H":     ("Normal", 0x0b),          # h and H
+    "I":     ("Normal", 0x0c),          # i and I
+    "J":     ("Normal", 0x0d),          # j and J
+    "K":     ("Normal", 0x0e),          # k and K
+    "L":     ("Normal", 0x0f),          # l and L
+    "M":     ("Normal", 0x10),          # m and M
+    "N":     ("Normal", 0x11),          # n and N
+    "O":     ("Normal", 0x12),          # o and O
+    "P":     ("Normal", 0x13),          # p and P
+    "Q":     ("Normal", 0x14),          # q and Q
+    "R":     ("Normal", 0x15),          # r and R
+    "S":     ("Normal", 0x16),          # s and S
+    "T":     ("Normal", 0x17),          # t and T
+    "U":     ("Normal", 0x18),          # u and U
+    "V":     ("Normal", 0x19),          # v and V
+    "W":     ("Normal", 0x1a),          # w and W
+    "X":     ("Normal", 0x1b),          # x and X
+    "Y":     ("Normal", 0x1c),          # y and Y
+    "Z":     ("Normal", 0x1d),          # z and Z
+    "1":     ("Normal", 0x1e),          # 1 and !
+    "2":     ("Normal", 0x1f),          # 2 and @
+    "3":     ("Normal", 0x20),          # 3 and #
+    "4":     ("Normal", 0x21),          # 4 and $
+    "5":     ("Normal", 0x22),          # 5 and %
+    "6":     ("Normal", 0x23),          # 6 and ^
+    "7":     ("Normal", 0x24),          # 7 and &
+    "8":     ("Normal", 0x25),          # 8 and *
+    "9":     ("Normal", 0x26),          # 9 and (
+    "0":     ("Normal", 0x27),          # 0 and )
+    "Enter": ("Normal", 0x28),          # Enter
+    "Esc":   ("Normal", 0x29),          # Escape
+    "BckSp": ("Normal", 0x2a),          # Backspace
+    "Tab":   ("Normal", 0x2b),          # Tab
+    "Space": ("Normal", 0x2c),          # Space
+    "-":     ("Normal", 0x2d),          # - and _
+    "=":     ("Normal", 0x2e),          # = and +
+    "[":     ("Normal", 0x2f),          # [ and {
+    "]":     ("Normal", 0x30),          # ] and }
+    "\\":    ("Normal", 0x31),          # \ and |
+    ";":     ("Normal", 0x33),          # ; and :
+    "'":     ("Normal", 0x34),          # ' and "
+    "`":     ("Normal", 0x35),          # ` and ~
+    ",":     ("Normal", 0x36),          # , and <
+    ".":     ("Normal", 0x37),          # . and >
+    "/":     ("Normal", 0x38),          # / and ?
+    "F1":    ("Normal", 0x3a),          # F1
+    "F2":    ("Normal", 0x3b),          # F2
+    "F3":    ("Normal", 0x3c),          # F3
+    "F4":    ("Normal", 0x3d),          # F4
+    "F5":    ("Normal", 0x3e),          # F5
+    "F6":    ("Normal", 0x3f),          # F6
+    "F7":    ("Normal", 0x40),          # F7
+    "F8":    ("Normal", 0x41),          # F8
+    "F9":    ("Normal", 0x42),          # F9
+    "F10":   ("Normal", 0x43),          # F10
+    "F11":   ("Normal", 0x44),          # F11
+    "F12":   ("Normal", 0x45),          # F12
+    "Ins":   ("Normal", 0x49),          # Insert
+    "Home":  ("Normal", 0x4a),          # Home
+    "PgUp":  ("Normal", 0x4b),          # Page Up
+    "Del":   ("Normal", 0x4c),          # Delete
+    "End":   ("Normal", 0x4d),          # End
+    "PgDn":  ("Normal", 0x4e),          # Page Down
+    "Right": ("Normal", 0x4f),          # Right Arrow
+    "Left":  ("Normal", 0x50),          # Left Arrow
+    "Down":  ("Normal", 0x51),          # Down Arrow
+    "Up":    ("Normal", 0x52),          # Up Arrow
+    "Mute":  ("Normal", 0x7f),          # Mute
+    "Vol+":  ("Normal", 0x80),          # Volume Up
+    "Vol-":  ("Normal", 0x81),          # Volume Down
+
+    # Modifers
+    "LCtrl": ("Modifier", 0b00000001),  # Left Control
+    "LShft": ("Modifier", 0b00000010),  # Left Shift
+    "LAlt":  ("Modifier", 0b00000100),  # Left Alt
+    "LSup":  ("Modifier", 0b00001000),  # Left Super
+    "RCtrl": ("Modifier", 0b00010000),  # Right Control
+    "RShft": ("Modifier", 0b00100000),  # Right Shift
+    "RAlt":  ("Modifier", 0b01000000),  # Right Alt
+    "RSup":  ("Modifier", 0b10000000),  # Right Super
 
     # Layer keys
-    "Layer": (0x03, 1),           # Select layer 1
+    "Layer": ("Layer", 1),              # Select layer 1
 
 }
 
@@ -102,7 +104,7 @@ class Layer:
     def __init__(self, legends):
         self.legends = legends
 
-    def create(string, rows, columns, reverse_rows=False):
+    def create(string, rows, columns):
         # Read from string
         legends_array = []
         regex = re.compile('\S+')
@@ -114,9 +116,6 @@ class Layer:
         assert len(legends_array) == rows
         for legends_row in legends_array:
             assert len(legends_row) == columns
-        # Reverse rows order
-        if reverse_rows:
-            legends_array = list(reversed(legends_array))
         # Create and return legends
         legends = [l for legends_row in legends_array for l in legends_row]
         return Layer(legends)
@@ -124,27 +123,23 @@ class Layer:
 
 class Keymap:
 
-    def __init__(self, layer0, layer1, rows, columns, reverse_rows=False):
-        self.layer0 = Layer.create(
-            layer0, rows, columns, reverse_rows)
-        self.layer1 = Layer.create(
-            layer1, rows, columns, reverse_rows)
+    def __init__(self, layers, rows, columns):
+        self.layers = []
+        for i, layer in enumerate(layers):
+            self.layers.append(Layer.create(layer, rows, columns))
 
-    @staticmethod
-    def format_legend(l):
-        if l in keycodes:
-            return "0x%02x, 0x%02x," % keycodes[l]
-        else:
-            return "0x00, 0x00,"
+    def render_layer(self, i):
+        print("\t// Layer %d" % i)
+        print("\t{")
+        for legend in self.layers[i].legends:
+            print("\t\t{ .type = %s, .value = 0x%02x }," % keycodes[legend])
+        print("\t},")
 
     def render(self):
-        print("static const PROGMEM uint8_t keymap[4 * MATRIX_KEYS] =")
+        print("static const PROGMEM keycode_t keymap[2][MATRIX_KEYS] =")
         print("{")
-        print("\t// Layer 0")
-        for l in self.layer0.legends:
-            print("\t" + Keymap.format_legend(l))
-        print()
-        print("\t// Layer 1")
-        for l in self.layer1.legends:
-            print("\t" + Keymap.format_legend(l))
+        for i in range(len(self.layers)):
+            self.render_layer(i)
+            if i != len(self.layers) - 1:
+                print()
         print("};")

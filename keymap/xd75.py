@@ -6,7 +6,7 @@ layer0 = """
   '     Q     W     E     R     T    ---   ---   ---    Y     U     I     O     P     -
 LCtrl   A     S     D     F     G     [    ---    \     H     J     K     L     ;   RCtrl
 LShft   Z     X     C     V     B     ]    ---    `     N     M     ,     .     /   RShft
-Layer LSup  LAlt  Space  xxx  Space  Tab   ---   Enter BckSp xxx  BckSp  RAlt  RSup Layer
+Layer LSup  LAlt  Space  ---  Space  Tab   ---   Enter BckSp ---  BckSp  RAlt  RSup Layer
 
 """
 
@@ -20,4 +20,4 @@ Layer LSup  LAlt   ---   ---   ---   ---   ---   ---   ---   ---   ---   RAlt  R
 
 """
 
-keymap.Keymap(layer0, layer1, rows=5, columns=15).render()
+keymap.Keymap((layer0, layer1), rows=5, columns=15).render()
