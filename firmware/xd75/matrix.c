@@ -1,10 +1,7 @@
 #include "matrix.h"
 
-#include "debouncer.h"
 #include <avr/io.h>
 #include <util/delay.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 #define MATRIX_ROWS 5
 #define MATRIX_COLUMNS 15
@@ -14,6 +11,10 @@
 
 // Column: 0   1   2   3   4   5   6   7   8   9   10  11  12  13  14
 // Pin:    F0  F1  E6  C7  C6  B6  D4  B1  B7  B5  B4  D7  D6  B3  B0
+
+static struct {
+    void (*send)(uint8_t key, bool pressed);
+} matrix;
 
 static void init_rows()
 {
@@ -39,10 +40,11 @@ static void init_columns()
     PORTD |= 0b11010000;
 }
 
-void matrix_init()
+void matrix_init(void (*send)(uint8_t key, bool pressed))
 {
     init_rows();
     init_columns();
+    matrix.send = send;
 }
 
 static void select_row(uint8_t row)
@@ -84,7 +86,8 @@ static uint16_t read_columns()
         (PINB & 0b00000001 ? 0 : (1 << 14));
 }
 
-void matrix_update()
+// Scan each key; send its state to the registered callback
+void matrix_scan()
 {
     uint8_t key = 0;
     for (uint8_t row=0; row<MATRIX_ROWS; row++)
@@ -95,7 +98,7 @@ void matrix_update()
         for (uint8_t column=0; column<MATRIX_COLUMNS; column++)
         {
             bool pressed = (columns & (1 << column));
-            debouncer_feed(key++, pressed);
+            matrix.send(key++, pressed);
         }
     }
 }

@@ -1,7 +1,10 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-void matrix_init();
-void matrix_update();
+#include <stdbool.h>
+#include <stdint.h>
+
+void matrix_init(void (*send)(uint8_t key, bool pressed));
+void matrix_scan();
 
 #endif // MATRIX_H

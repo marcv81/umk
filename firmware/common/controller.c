@@ -1,35 +1,30 @@
 #include "controller.h"
 
 #include "config.h"
-#include "matrix.h"
+#include "debouncer.h"
 #include "keymap.h"
 #include "keys_list.h"
 #include "layers.h"
+#include "matrix.h"
 #include "report_builder.h"
 #include "usb.h"
 
-void controller_on_pressed(uint8_t key)
+static struct {
+    usb_report_t report;
+} controller;
+
+static void on_pressed(uint8_t key)
 {
     keys_list_add(key);
     layers_set(key);
 }
 
-void controller_on_released(uint8_t key)
+static void on_released(uint8_t key)
 {
     keys_list_remove(key);
 }
 
-struct {
-    usb_report_t report;
-} controller;
-
-void controller_init()
-{
-    matrix_init();
-    usb_init();
-}
-
-void handle_key(uint8_t key)
+static void rebuild(uint8_t key)
 {
     keycode_t keycode;
     keymap_load(key, layers_get(key), &keycode);
@@ -54,17 +49,22 @@ void handle_key(uint8_t key)
     }
 }
 
+void controller_init()
+{
+    usb_init();
+    matrix_init(&debouncer_recv);
+    debouncer_init(&on_pressed, &on_released);
+}
+
 void controller_update()
 {
-    // Update everything
     usb_update();
-    matrix_update();
+    matrix_scan();
 
-    // Calculate the active layer and rebuild the keyboard report
-    layers_active_reset();
+    // Rebuild the report and active layer
     report_builder_reset(&controller.report);
-    keys_list_iterate(&handle_key);
+    layers_active_reset();
+    keys_list_iterate(&rebuild);
 
-    // Send the rebuilt keyboard report
     usb_report_send(&controller.report);
 }

@@ -4,7 +4,7 @@
 // Matrix size
 #define MATRIX_KEYS (15 * 5)
 
-// Cycle duration: 510us
+// Cycle duration: 520us
 
 // Number of cycles a key must look actuated to register the actuation
 #define DEBOUNCER_ACTUATION_DURATION 2 // 1ms

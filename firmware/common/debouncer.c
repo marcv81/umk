@@ -1,16 +1,26 @@
 #include "debouncer.h"
 
 #include "config.h"
-#include "controller.h"
 
 static struct {
     // Cycles counter
     int8_t counter[MATRIX_KEYS];
     // Whether the debounced key is pressed or not
     bool pressed[MATRIX_KEYS];
+    // Actuation callbacks
+    void (*on_pressed)(uint8_t key);
+    void (*on_released)(uint8_t key);
 } debouncer;
 
-void debouncer_feed(uint8_t key, bool pressed)
+void debouncer_init(
+    void (*on_pressed)(uint8_t key),
+    void (*on_released)(uint8_t key))
+{
+    debouncer.on_pressed = on_pressed;
+    debouncer.on_released = on_released;
+}
+
+void debouncer_recv(uint8_t key, bool pressed)
 {
     // If an actuation may not occur (counter < 0)
     // Increase the counter until the debouncer cools down
@@ -39,12 +49,12 @@ void debouncer_feed(uint8_t key, bool pressed)
                 if (pressed)
                 {
                     debouncer.pressed[key] = true;
-                    controller_on_pressed(key);
+                    debouncer.on_pressed(key);
                 }
                 else
                 {
                     debouncer.pressed[key] = false;
-                    controller_on_released(key);
+                    debouncer.on_released(key);
                 }
 
                 // Trigger the cooldown
