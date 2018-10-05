@@ -23,8 +23,8 @@ INCS="-Ifirmware/common -Ifirmware/xd75 -Ioutput"
 function compile { avr-gcc -c $CFLAGS $INCS $1/$2.c -o output/$2.o; }
 compile firmware/xd75 main
 compile firmware/xd75 matrix
+compile firmware/common core
 compile firmware/common debouncer
-compile firmware/common controller
 compile firmware/common keymap
 compile firmware/common keys_list
 compile firmware/common layers

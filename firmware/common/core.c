@@ -1,4 +1,4 @@
-#include "controller.h"
+#include "core.h"
 
 #include "config.h"
 #include "debouncer.h"
@@ -11,7 +11,7 @@
 
 static struct {
     usb_report_t report;
-} controller;
+} core;
 
 static void on_pressed(uint8_t key)
 {
@@ -49,22 +49,22 @@ static void rebuild(uint8_t key)
     }
 }
 
-void controller_init()
+void core_init()
 {
     usb_init();
     matrix_init(&debouncer_recv);
     debouncer_init(&on_pressed, &on_released);
 }
 
-void controller_update()
+void core_update()
 {
     usb_update();
     matrix_scan();
 
     // Rebuild the report and active layer
-    report_builder_reset(&controller.report);
+    report_builder_reset(&core.report);
     layers_active_reset();
     keys_list_iterate(&rebuild);
 
-    usb_report_send(&controller.report);
+    usb_report_send(&core.report);
 }
