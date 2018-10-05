@@ -2,7 +2,9 @@
 #define CONFIG_H
 
 // Matrix size
-#define MATRIX_KEYS (15 * 5)
+#define MATRIX_ROWS 5
+#define MATRIX_COLUMNS 15
+#define MATRIX_KEYS (MATRIX_ROWS * MATRIX_COLUMNS)
 
 // Cycle duration: 520us
 
