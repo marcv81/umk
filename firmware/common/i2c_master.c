@@ -27,7 +27,7 @@ static void stop()
     while (TWCR & (1 << TWSTO));
 }
 
-// Prepare to write to a slave
+// Prepare to write to a slave (send SLA+W)
 static void sla_w(uint8_t sla_addr)
 {
     TWDR = sla_addr << 1;
@@ -35,7 +35,7 @@ static void sla_w(uint8_t sla_addr)
     while (!(TWCR & (1 << TWINT)));
 }
 
-// Prepare to read from a slave
+// Prepare to read from a slave (send SLA+R)
 static void sla_r(uint8_t sla_addr)
 {
     TWDR = (sla_addr << 1) | 1;
@@ -69,23 +69,31 @@ static uint8_t data_r_nack()
     return TWDR;
 }
 
-void i2c_master_write_byte(uint8_t sla_addr, uint8_t reg_addr, uint8_t data)
+void i2c_master_write(
+    uint8_t sla_addr, uint8_t reg_addr, uint8_t data[], uint8_t len)
 {
     start();
     sla_w(sla_addr);
     data_w(reg_addr);
-    data_w(data);
+    for (uint8_t i=0; i<len; i++)
+    {
+        data_w(data[i]);
+    }
     stop();
 }
 
-uint8_t i2c_master_read_byte(uint8_t sla_addr, uint8_t reg_addr)
+void i2c_master_read(
+    uint8_t sla_addr, uint8_t reg_addr, uint8_t data[], uint8_t len)
 {
     start();
     sla_w(sla_addr);
     data_w(reg_addr);
     start();
     sla_r(sla_addr);
-    uint8_t data = data_r_nack();
+    for (uint8_t i=0; i<len-1; i++)
+    {
+        data[i] = data_r_ack();
+    }
+    data[len - 1] = data_r_nack();
     stop();
-    return data;
 }

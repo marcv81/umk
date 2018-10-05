@@ -5,7 +5,10 @@
 
 void i2c_master_init();
 
-void i2c_master_write_byte(uint8_t sla_addr, uint8_t reg_addr, uint8_t data);
-uint8_t i2c_master_read_byte(uint8_t sla_addr, uint8_t reg_addr);
+void i2c_master_write(
+    uint8_t sla_addr, uint8_t reg_addr, uint8_t data[], uint8_t len);
+
+void i2c_master_read(
+    uint8_t sla_addr, uint8_t reg_addr, uint8_t data[], uint8_t len);
 
 #endif // I2C_MASTER_H
