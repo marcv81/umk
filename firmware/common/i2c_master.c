@@ -1,11 +1,11 @@
-#include "i2c.h"
+#include "i2c_master.h"
 
 #include "config.h"
 #include <util/twi.h>
 
 #define TWSR_PRESCALER_MASK 0b11111100
 
-void i2c_init()
+void i2c_master_init()
 {
     // Clear the prescaler bits in TWSR
     TWSR &= TWSR_PRESCALER_MASK;
@@ -69,7 +69,7 @@ static uint8_t data_r_nack()
     return TWDR;
 }
 
-void i2c_write_byte(uint8_t sla_addr, uint8_t reg_addr, uint8_t data)
+void i2c_master_write_byte(uint8_t sla_addr, uint8_t reg_addr, uint8_t data)
 {
     start();
     sla_w(sla_addr);
@@ -78,7 +78,7 @@ void i2c_write_byte(uint8_t sla_addr, uint8_t reg_addr, uint8_t data)
     stop();
 }
 
-uint8_t i2c_read_byte(uint8_t sla_addr, uint8_t reg_addr)
+uint8_t i2c_master_read_byte(uint8_t sla_addr, uint8_t reg_addr)
 {
     start();
     sla_w(sla_addr);
