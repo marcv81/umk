@@ -1,6 +1,6 @@
 import re
 
-keycodes = {
+legends = {
 
     "---":   ("Normal", 0),
 
@@ -98,41 +98,69 @@ keycodes = {
 
 }
 
+# Read line/space separated tokens into an array of arrays
+# Apply a conversion function to each token if supplied
+def read_tokens(string, convert=None):
+    regex = re.compile('\S+')
+    tokens = []
+    for line in string.split("\n"):
+        row = tuple(regex.findall(line))
+        if convert is not None:
+            row = tuple(convert(token) for token in row)
+        if len(row) > 0:
+            tokens.append(row)
+    return tuple(tokens)
 
-class Layer:
+# Create mapping from string
+def create_mapping(string, rows, columns):
+    matrix = set()
+    def convert(token):
+        # Validate row and column
+        row, column = tuple(int(i) for i in token.split(','))
+        assert (row < rows) and (column < columns)
+        assert (row, column) not in matrix
+        matrix.add((row, column))
+        # Return matrix index
+        return row * columns + column
+    return read_tokens(string, convert)
 
-    def __init__(self, legends):
-        self.legends = legends
-
-    def create(string, rows, columns):
-        # Read from string
-        legends_array = []
-        regex = re.compile('\S+')
-        for line in string.split("\n"):
-            legends_row = regex.findall(line)
-            if len(legends_row) > 0:
-                legends_array.append(legends_row)
-        # Verify dimensions
-        assert len(legends_array) == rows
-        for legends_row in legends_array:
-            assert len(legends_row) == columns
-        # Create and return legends
-        legends = [l for legends_row in legends_array for l in legends_row]
-        return Layer(legends)
-
+# Create layer from string
+def create_layer(string, mapping, rows, columns):
+    # Create keycodes from string
+    def convert(token):
+        assert token in legends
+        return legends[token]
+    keycodes = read_tokens(string, convert)
+    # Iterate over pairs from two arrays
+    # of arrays with the same shape
+    def iterate_pairs(a, b):
+        def iterate(a, b):
+            assert len(a) == len(b)
+            for i in range(len(a)):
+                yield (a[i], b[i])
+        for ai, bi in iterate(a, b):
+            for aij, bij in iterate(ai, bi):
+                yield aij, bij
+    # Apply mapping to keycodes
+    layer = [legends['---'] for _ in range(rows * columns)]
+    for index, keycode in iterate_pairs(mapping, keycodes):
+        layer[index] = keycode
+    # Return layer
+    return layer
 
 class Keymap:
 
-    def __init__(self, layers, rows, columns):
-        self.layers = []
-        for i, layer in enumerate(layers):
-            self.layers.append(Layer.create(layer, rows, columns))
+    def __init__(self, mapping, layers, rows, columns):
+        mapping = create_mapping(mapping, rows, columns)
+        self.layers = [
+            create_layer(layer, mapping, rows, columns)
+            for layer in layers]
 
     def render_layer(self, i):
         print("\t// Layer %d" % i)
         print("\t{")
-        for legend in self.layers[i].legends:
-            print("\t\t{ .type = %s, .value = 0x%02x }," % keycodes[legend])
+        for keycode in self.layers[i]:
+            print("\t\t{ .type = %s, .value = 0x%02x }," % keycode)
         print("\t},")
 
     def render(self):
