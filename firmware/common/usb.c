@@ -158,7 +158,7 @@ static void update_reset()
     DESCRIPTOR_LENGTH_ENDPOINT)
 
 // HID report length
-# define DESCRIPTOR_LENGTH_HID_REPORT 63
+#define DESCRIPTOR_LENGTH_HID_REPORT 63
 
 static const uint8_t PROGMEM descriptors[] = {
 
@@ -301,7 +301,7 @@ static void setup_packet_recv(setup_packet_t *setup_packet)
 
 // Send a descriptor
 // The payload is split into packets of ENDPOINT0_SIZE bytes
-static void descriptor_send(const uint8_t* data, uint16_t length)
+static void descriptor_send(const uint8_t *data, uint16_t length)
 {
     while (length)
     {

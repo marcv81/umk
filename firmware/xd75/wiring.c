@@ -78,7 +78,6 @@ static uint16_t read_columns()
         (PINB & 0b00000001 ? 0 : (1 << 14));
 }
 
-
 uint16_t wiring_read_columns(uint8_t row)
 {
     select_row(row);
