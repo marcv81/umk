@@ -1,9 +1,11 @@
 #include "i2c_master.h"
 
 #include "config.h"
+#include <util/delay.h>
 #include <util/twi.h>
 
 #define TWSR_PRESCALER_MASK 0b11111100
+#define START_DELAY_MS 20
 
 void i2c_master_init()
 {
@@ -11,6 +13,8 @@ void i2c_master_init()
     TWSR &= TWSR_PRESCALER_MASK;
     // Set TWBR to achieve the specified I2C frequency
     TWBR = ((F_CPU / I2C_FREQUENCY) - 16) / 2;
+    // Give the slaves a head start
+    _delay_ms(START_DELAY_MS);
 }
 
 // Send a start (or repeated start) condition

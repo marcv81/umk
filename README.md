@@ -6,6 +6,7 @@ It is not recommended for casual users; other firmwares have more features. It i
 
 ## Supported keyboards
 
+- Iris
 - XD75
 
 # Hacking
@@ -18,5 +19,11 @@ Please install the AVR toolchain and Python 3, or build in the provided Docker c
 
 ## Flash
 
+### DFU
+
     dfu-programmer atmega32u4 erase
     dfu-programmer atmega32u4 flash <firmware>.hex
+
+### AVRDude
+
+    avrdude -c avr109 -p m32u4 -P /dev/ttyACM<N> -U flash:w:output/<firmware>.hex
