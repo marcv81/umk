@@ -7,9 +7,13 @@ static struct {
     uint8_t size;
 } report_builder;
 
-void report_builder_reset(usb_report_t *report)
+void report_builder_init(usb_report_t *report)
 {
     report_builder.report = report;
+}
+
+void report_builder_reset()
+{
     report_builder.size = 0;
 
     // Empty the report

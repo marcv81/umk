@@ -54,6 +54,7 @@ void core_init()
     usb_init();
     matrix_init(&debouncer_recv);
     debouncer_init(&on_pressed, &on_released);
+    report_builder_init(&core.report);
 }
 
 void core_update()
@@ -62,7 +63,7 @@ void core_update()
     matrix_scan();
 
     // Rebuild the report and active layer
-    report_builder_reset(&core.report);
+    report_builder_reset();
     layers_active_reset();
     keys_list_iterate(&rebuild);
 
