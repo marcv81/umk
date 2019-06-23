@@ -5,8 +5,10 @@
 
 #include "keymap.inc"
 
-void keymap_load(uint8_t key, uint8_t layer, keycode_t *keycode)
+keycode_t keymap_load(uint8_t key, uint8_t layer)
 {
-    keycode->type = pgm_read_byte(&keymap[layer][key].type);
-    keycode->value = pgm_read_byte(&keymap[layer][key].value);
+    return (keycode_t){
+        pgm_read_byte(&keymap[layer][key].type),
+        pgm_read_byte(&keymap[layer][key].value),
+    };
 }

@@ -26,8 +26,7 @@ static void on_released(uint8_t key)
 
 static void rebuild(uint8_t key)
 {
-    keycode_t keycode;
-    keymap_load(key, layers_get(key), &keycode);
+    keycode_t keycode = keymap_load(key, layers_get(key));
 
     switch (keycode.type)
     {

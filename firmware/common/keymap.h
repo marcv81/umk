@@ -10,6 +10,6 @@ typedef struct {
     uint8_t value;
 } keycode_t;
 
-void keymap_load(uint8_t key, uint8_t layer, keycode_t *keycode);
+keycode_t keymap_load(uint8_t key, uint8_t layer);
 
 #endif // KEYMAP_H
