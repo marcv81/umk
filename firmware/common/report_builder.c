@@ -1,5 +1,7 @@
 #include "report_builder.h"
 
+#include <stdbool.h>
+
 static struct {
     // Target report
     usb_report_t *report;
@@ -24,17 +26,25 @@ void report_builder_reset()
     }
 }
 
-void report_builder_add_key(uint8_t code)
+// Return if there is no more space for usage codes
+static bool is_full()
 {
-    // Return if there is no more space for usage codes
-    if (report_builder.size >= 6) return;
+    return (report_builder.size >= 6);
+}
 
-    // Return if the code is already in the report
+// Return if the code is already in the report
+static bool has_key(uint8_t code)
+{
     for (uint8_t i=0; i<report_builder.size; i++)
     {
-        if (report_builder.report->keys[i] == code) return;
+        if (report_builder.report->keys[i] == code) return true;
     }
+    return false;
+}
 
+void report_builder_add_key(uint8_t code)
+{
+    if (is_full() || has_key(code)) return;
     report_builder.report->keys[report_builder.size++] = code;
 }
 
