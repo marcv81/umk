@@ -30,4 +30,4 @@ LShft  ---  Mute  Vol-   Vol+  ---  LSup         RAlt  ---   ---   ---   ---   -
 
 """
 
-keymap.Keymap(mapping, (layer0, layer1), rows=5, columns=12).render()
+print(keymap.keymap_str(mapping, (layer0, layer1), rows=5, columns=12))

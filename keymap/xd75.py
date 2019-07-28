@@ -30,4 +30,4 @@ Layer LSup  LAlt   Tab         Tab   ---   ---   ---  Enter       Enter  RAlt  R
 
 """
 
-keymap.Keymap(mapping, (layer0, layer1), rows=5, columns=15).render()
+print(keymap.keymap_str(mapping, (layer0, layer1), rows=5, columns=15))

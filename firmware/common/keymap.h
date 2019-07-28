@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef enum { Normal, Modifier, Layer } keycode_type_t;
+typedef enum { None, Key, Modifier, Layer } keycode_type_t;
 
 typedef struct {
     keycode_type_t type;

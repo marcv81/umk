@@ -30,7 +30,7 @@ static void rebuild(uint8_t key)
 
     switch (keycode.type)
     {
-        case Normal:
+        case Key:
         {
             report_builder_add_key(keycode.value);
         }
