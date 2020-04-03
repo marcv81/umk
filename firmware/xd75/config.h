@@ -14,4 +14,7 @@
 // Number of cycles a key is ignored after an actuation
 #define DEBOUNCER_COOLDOWN_DURATION 20 // 10ms
 
+// Number of RGB LEDs
+#define RGB_LEDS 6
+
 #endif // CONFIG_H
