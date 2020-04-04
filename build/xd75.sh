@@ -25,6 +25,7 @@ compile firmware/xd75 main
 compile firmware/xd75 matrix
 compile firmware/xd75 rgb
 compile firmware/xd75 wiring
+compile firmware/common backlight
 compile firmware/common core
 compile firmware/common debouncer
 compile firmware/common keymap

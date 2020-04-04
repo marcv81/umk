@@ -17,4 +17,7 @@
 // Number of RGB LEDs
 #define RGB_LEDS 6
 
+// Number of cycles between backlight frames
+#define BACKLIGHT_FRAME_DURATION 60 // 30ms
+
 #endif // CONFIG_H
