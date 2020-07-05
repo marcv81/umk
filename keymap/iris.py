@@ -23,9 +23,9 @@ LShft   Z     X     C     V     B   LAlt         RAlt   N     M     ,     .     
 layer1 = """
 
  ---   F1    F2    F3    F4    F5                       F6    F7    F8    F9   F10   F11
- ---   ---   ---    `     \    ---                     PgUp  Home   Up   End   ---   F12
-LCtrl  ---   ---    [     ]    ---                     PgDn  Left  Down Right  ---  RCtrl
-LShft  ---  Mute   Vol-  Vol+  ---  LAlt         RAlt  ---   ---   ---   ---   ---  RShft
+ ---   ---   ---  PgUp   ---   ---                     ---   ---    Up   ---   ---   F12
+LCtrl  ---  Home  PgDn   End    [                       `    Left  Down Right  ---  RCtrl
+LShft  ---  Mute   Vol-  Vol+   ]   LAlt         RAlt   \    ---   ---   ---   ---  RShft
                         Layer  Tab  LSup         RSup Enter Layer
 
 """

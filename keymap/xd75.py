@@ -12,20 +12,20 @@ mapping = """
 
 layer0 = """
 
- Esc    1     2     3     4     5    ---   ---   ---    6     7     8     9     0     =
+ Esc    1     2     3     4     5   Mute   Vol-  Vol+   6     7     8     9     0     =
   '     Q     W     E     R     T    ---   ---   ---    Y     U     I     O     P     -
-LCtrl   A     S     D     F     G    ---   ---   ---    H     J     K     L     ;   RCtrl
-LShft   Z     X     C     V     B    ---   ---   ---    N     M     ,     .     /   RShft
+LCtrl   A     S     D     F     G     [    ---    `     H     J     K     L     ;   RCtrl
+LShft   Z     X     C     V     B     ]    ---    \     N     M     ,     .     /   RShft
 Layer LSup  LAlt  Layer Space       Space  ---  BckSp       BckSp Layer RAlt  RSup  Layer
 
 """
 
 layer1 = """
 
- ---   F1    F2    F3    F4    F5    ---   ---   ---    F6    F7    F8    F9   F10   F11
- ---   ---   ---    `     \    ---   ---   ---   ---   PgUp  Home   Up   End   ---   F12
-LCtrl  ---   ---    [     ]    ---   ---   ---   ---   PgDn  Left  Down Right  ---  RCtrl
-LShft  ---  Mute   Vol-  Vol+  ---   ---   ---   ---   ---   ---   ---   ---   ---  RShft
+ ---   ---   ---   ---   ---   ---   F10   F11   F12   ---   ---   ---   ---   ---   ---
+ ---   ---   ---  PgUp   ---   ---   F7    F8    F9    ---   ---    Up   ---   ---   ---
+LCtrl  ---  Home  PgDn   End   ---   F4    F5    F6    ---   Left  Down Right  ---  RCtrl
+LShft  ---   ---   ---   ---   ---   F1    F2    F3    ---   ---   ---   ---   ---  RShft
 Layer LSup  LAlt  Layer  Tab         Tab   ---  Enter       Enter Layer RAlt  RSup  Layer
 
 """
