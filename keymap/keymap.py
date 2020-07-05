@@ -30,23 +30,20 @@ def read_layer(mapping, string, rows, columns):
 
 def layer_str(layer):
     lines = []
-    lines.append("\t{")
+    lines.append("    {")
     for values in layer:
-        lines.append("\t\t{ .type = %s, .value = 0x%02x }," % values)
-    lines.append("\t},")
+        lines.append("        {.type = %s, .value = 0x%02x}," % values)
+    lines.append("    },")
     return "\n".join(lines)
 
 
 def layers_str(layers):
     lines = []
     lines.append(
-        "static const PROGMEM "
-        "struct { uint8_t type; uint8_t value; } "
-        "keymap[%d][MATRIX_KEYS] =" % len(layers)
+        "static const PROGMEM keycode_t keymap[%d][MATRIX_KEYS] = {" % len(layers)
     )
-    lines.append("{")
     for i, layer in enumerate(layers):
-        lines.append("\t// Layer %d" % i)
+        lines.append("    // Layer %d" % i)
         lines.append(layer_str(layer))
     lines.append("};")
     return "\n".join(lines)
