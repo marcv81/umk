@@ -1,10 +1,12 @@
 import re
 from legends import legends
 
+
 def read_tokens(string):
     regex = re.compile("\S+")
     for line in string.split("\n"):
         yield from regex.findall(line)
+
 
 def read_mapping(string, rows, columns):
     mapping = []
@@ -16,6 +18,7 @@ def read_mapping(string, rows, columns):
     assert len(mapping) == len(set(mapping))
     return mapping
 
+
 def read_layer(mapping, string, rows, columns):
     tokens = tuple(legends[token] for token in read_tokens(string))
     assert len(mapping) == len(tokens)
@@ -23,6 +26,7 @@ def read_layer(mapping, string, rows, columns):
     for i in range(len(mapping)):
         layer[mapping[i]] = tokens[i]
     return layer
+
 
 def layer_str(layer):
     lines = []
@@ -32,12 +36,14 @@ def layer_str(layer):
     lines.append("\t},")
     return "\n".join(lines)
 
+
 def layers_str(layers):
     lines = []
     lines.append(
         "static const PROGMEM "
         "struct { uint8_t type; uint8_t value; } "
-        "keymap[%d][MATRIX_KEYS] =" % len(layers))
+        "keymap[%d][MATRIX_KEYS] =" % len(layers)
+    )
     lines.append("{")
     for i, layer in enumerate(layers):
         lines.append("\t// Layer %d" % i)
@@ -45,11 +51,13 @@ def layers_str(layers):
     lines.append("};")
     return "\n".join(lines)
 
+
 def keymap_str(mapping_string, layers_strings, rows, columns):
-        mapping = read_mapping(mapping_string, rows, columns)
-        layers = tuple(
-            read_layer(mapping, layer_string, rows, columns)
-            for layer_string in layers_strings)
-        lines = []
-        lines.append(layers_str(layers))
-        return "\n".join(lines)
+    mapping = read_mapping(mapping_string, rows, columns)
+    layers = tuple(
+        read_layer(mapping, layer_string, rows, columns)
+        for layer_string in layers_strings
+    )
+    lines = []
+    lines.append(layers_str(layers))
+    return "\n".join(lines)
