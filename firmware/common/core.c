@@ -9,7 +9,13 @@
 #include "report_builder.h"
 #include "usb.h"
 
-static struct { usb_report_t report; } core;
+#define TIMER_CYCLES 10000
+#define TIMER_CODE 0x2c  // Space key
+
+static struct {
+  usb_report_t report;
+  uint16_t timer;
+} core;
 
 static void on_pressed(uint8_t key) {
   keys_list_add(key);
@@ -23,7 +29,10 @@ static void rebuild(uint8_t key) {
 
   switch (keycode.type) {
     case Key: {
-      report_builder_add_key(keycode.value);
+      if (keycode.value == TIMER_CODE)
+        core.timer = TIMER_CYCLES + 1;
+      else
+        report_builder_add_key(keycode.value);
     } break;
     case Modifier: {
       report_builder_add_modifier(keycode.value);
@@ -49,6 +58,12 @@ void core_update() {
   report_builder_reset();
   layers_active_reset();
   keys_list_iterate(&rebuild);
+
+  // Press space when the timer starts and stops
+  if ((core.timer == TIMER_CYCLES + 1) || (core.timer == 1)) {
+    report_builder_add_key(TIMER_CODE);
+  }
+  if (core.timer > 0) core.timer--;
 
   usb_report_send(&core.report);
 }
