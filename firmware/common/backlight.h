@@ -4,4 +4,4 @@
 void backlight_init();
 void backlight_update();
 
-#endif // BACKLIGHT_H
+#endif  // BACKLIGHT_H

@@ -7,4 +7,4 @@ void keys_list_add(uint8_t key);
 void keys_list_remove(uint8_t key);
 void keys_list_iterate(void (*func)(uint8_t key));
 
-#endif // KEYS_LIST_H
+#endif  // KEYS_LIST_H

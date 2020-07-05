@@ -15,9 +15,9 @@
 // Cycle duration: 540us
 
 // Number of cycles a key must look actuated to register the actuation
-#define DEBOUNCER_ACTUATION_DURATION 2 // 1ms
+#define DEBOUNCER_ACTUATION_DURATION 2  // 1ms
 
 // Number of cycles a key is ignored after an actuation
-#define DEBOUNCER_COOLDOWN_DURATION 18 // 10ms
+#define DEBOUNCER_COOLDOWN_DURATION 18  // 10ms
 
-#endif // CONFIG_H
+#endif  // CONFIG_H

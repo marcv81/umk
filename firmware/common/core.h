@@ -4,4 +4,4 @@
 void core_init();
 void core_update();
 
-#endif // CORE_H
+#endif  // CORE_H

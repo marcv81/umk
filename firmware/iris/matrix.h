@@ -7,4 +7,4 @@
 void matrix_init(void (*send)(uint8_t key, bool pressed));
 void matrix_scan();
 
-#endif // MATRIX_H
+#endif  // MATRIX_H

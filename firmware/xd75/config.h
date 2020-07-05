@@ -9,15 +9,15 @@
 // Cycle duration: 520us
 
 // Number of cycles a key must look actuated to register the actuation
-#define DEBOUNCER_ACTUATION_DURATION 2 // 1ms
+#define DEBOUNCER_ACTUATION_DURATION 2  // 1ms
 
 // Number of cycles a key is ignored after an actuation
-#define DEBOUNCER_COOLDOWN_DURATION 20 // 10ms
+#define DEBOUNCER_COOLDOWN_DURATION 20  // 10ms
 
 // Number of RGB LEDs
 #define RGB_LEDS 6
 
 // Number of cycles between backlight frames
-#define BACKLIGHT_FRAME_DURATION 60 // 30ms
+#define BACKLIGHT_FRAME_DURATION 60  // 30ms
 
-#endif // CONFIG_H
+#endif  // CONFIG_H
