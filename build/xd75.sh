@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-set -x
+
+set -euo pipefail
 
 # Clean
 rm -rf output
@@ -9,18 +9,11 @@ mkdir -p output
 # Generate keymap
 python3 keymap/xd75.py > output/keymap.inc
 
-CFLAGS="\
--mmcu=atmega32u4 \
--DF_CPU=16000000UL \
--DF_OSC=16000000UL \
--Os \
--fshort-enums \
--std=c99"
-
-INCS="-Ifirmware/common -Ifirmware/xd75 -Ioutput"
+cflags=("-mmcu=atmega32u4" "-DF_CPU=16000000UL" "-DF_OSC=16000000UL" "-Os" "-fshort-enums" "-std=c99")
+incs=("-Ifirmware/common" "-Ifirmware/xd75" "-Ioutput")
 
 # Compile
-function compile { avr-gcc -c $CFLAGS $INCS $1/$2.c -o output/$2.o; }
+function compile { avr-gcc -c "${cflags[@]}" "${incs[@]}" "$1/$2.c" -o "output/$2.o"; }
 compile firmware/xd75 main
 compile firmware/xd75 matrix
 compile firmware/xd75 rgb
@@ -35,7 +28,7 @@ compile firmware/common report_builder
 compile firmware/common usb
 
 # Link
-avr-gcc $CFLAGS output/*.o -o output/xd75.elf
+avr-gcc "${cflags[@]}" output/*.o -o output/xd75.elf
 
 # Translate
 avr-objcopy \

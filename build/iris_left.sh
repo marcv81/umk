@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-set -x
+
+set -euo pipefail
 
 # Clean
 rm -rf output
@@ -9,18 +9,11 @@ mkdir -p output
 # Generate keymap
 python3 keymap/iris.py > output/keymap.inc
 
-CFLAGS="\
--mmcu=atmega32u4 \
--DF_CPU=16000000UL \
--DF_OSC=16000000UL \
--Os \
--fshort-enums \
--std=c99"
-
-INCS="-Ifirmware/common -Ifirmware/iris -Ioutput"
+cflags=("-mmcu=atmega32u4" "-DF_CPU=16000000UL" "-DF_OSC=16000000UL" "-Os" "-fshort-enums" "-std=c99")
+incs=("-Ifirmware/common" "-Ifirmware/iris" "-Ioutput")
 
 # Compile
-function compile { avr-gcc -c $CFLAGS $INCS $1/$2.c -o output/$2.o; }
+function compile { avr-gcc -c "${cflags[@]}" "${incs[@]}" "$1/$2.c" -o "output/$2.o"; }
 compile firmware/iris main_left
 compile firmware/iris matrix
 compile firmware/iris wiring
@@ -34,7 +27,7 @@ compile firmware/common report_builder
 compile firmware/common usb
 
 # Link
-avr-gcc $CFLAGS output/*.o -o output/iris_left.elf
+avr-gcc "${cflags[@]}" output/*.o -o output/iris_left.elf
 
 # Translate
 avr-objcopy \

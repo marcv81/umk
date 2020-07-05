@@ -1,29 +1,22 @@
 #!/bin/bash
-set -e
-set -x
+
+set -euo pipefail
 
 # Clean
 rm -rf output
 mkdir -p output
 
-CFLAGS="\
--mmcu=atmega32u4 \
--DF_CPU=16000000UL \
--DF_OSC=16000000UL \
--Os \
--fshort-enums \
--std=c99"
-
-INCS="-Ifirmware/common -Ifirmware/iris -Ioutput"
+cflags=("-mmcu=atmega32u4" "-DF_CPU=16000000UL" "-DF_OSC=16000000UL" "-Os" "-fshort-enums" "-std=c99")
+incs=("-Ifirmware/common" "-Ifirmware/iris" "-Ioutput")
 
 # Compile
-function compile { avr-gcc -c $CFLAGS $INCS $1/$2.c -o output/$2.o; }
+function compile { avr-gcc -c "${cflags[@]}" "${incs[@]}" "$1/$2.c" -o "output/$2.o"; }
 compile firmware/iris main_right
 compile firmware/iris wiring
 compile firmware/common i2c_slave
 
 # Link
-avr-gcc $CFLAGS output/*.o -o output/iris_right.elf
+avr-gcc "${cflags[@]}" output/*.o -o output/iris_right.elf
 
 # Translate
 avr-objcopy \
