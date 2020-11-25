@@ -144,7 +144,7 @@ static void update_reset() {
    DESCRIPTOR_LENGTH_HID_INTERFACE + DESCRIPTOR_LENGTH_ENDPOINT)
 
 // HID report length
-#define DESCRIPTOR_LENGTH_HID_REPORT 63
+#define DESCRIPTOR_LENGTH_HID_REPORT 45
 
 static const uint8_t PROGMEM descriptors[] = {
 
@@ -219,39 +219,33 @@ static const uint8_t PROGMEM descriptors[] = {
     //   bit 7-2: reserved = 0
     //   bit 1-0: 11 = interrupt endpoint
 
-    // HID report descriptor (boot keyboard)
-    0x05, 0x01,  // Usage Page (Generic Desktop)
-    0x09, 0x06,  // Usage (Keyboard)
-    0xa1, 0x01,  // Collection (Application)
-    0x75, 0x01,  //   Report Size (1)
-    0x95, 0x08,  //   Report Count (8)
-    0x05, 0x07,  //   Usage Page (Key Codes)
-    0x19, 0xe0,  //   Usage Minimum (224)
-    0x29, 0xe7,  //   Usage Maximum (231)
-    0x15, 0x00,  //   Logical Minimum (0)
-    0x25, 0x01,  //   Logical Maximum (1)
-    0x81, 0x02,  //   Input (Data, Variable, Absolute)
-    0x95, 0x01,  //   Report Count (1)
-    0x75, 0x08,  //   Report Size (8)
-    0x81, 0x01,  //   Input (Constant)
-    0x95, 0x05,  //   Report Count (5)
-    0x75, 0x01,  //   Report Size (1)
-    0x05, 0x08,  //   Usage Page (LEDs)
-    0x19, 0x01,  //   Usage Minimum (1)
-    0x29, 0x05,  //   Usage Maximum (5)
-    0x91, 0x02,  //   Output (Data, Variable, Absolute)
-    0x95, 0x01,  //   Report Count (1)
-    0x75, 0x03,  //   Report Size (3)
-    0x91, 0x01,  //   Output (Constant)
-    0x95, 0x06,  //   Report Count (6)
-    0x75, 0x08,  //   Report Size (8)
-    0x15, 0x00,  //   Logical Minimum (0)
-    0x25, 0xff,  //   Logical Maximum(255)
-    0x05, 0x07,  //   Usage Page (Key Codes)
-    0x19, 0x00,  //   Usage Minimum (0)
-    0x29, 0xff,  //   Usage Maximum (255)
-    0x81, 0x00,  //   Input (Data, Array)
-    0xc0,        // End Collection
+    // HID report descriptor
+    0x05, 0x01,  // Usage page (generic desktop)
+    0x09, 0x06,  // Usage (keyboard)
+    0xa1, 0x01,  // Start collection (application)
+    // 8 bits input (modifiers bitmask)
+    0x95, 0x08,  //   Report count (8)
+    0x75, 0x01,  //   Report size (1)
+    0x05, 0x07,  //   Usage page (key codes)
+    0x19, 0xe0,  //   Usage minimum (left control)
+    0x29, 0xe7,  //   Usage maximum (right GUI)
+    0x15, 0x00,  //   Logical minimum (0)
+    0x25, 0x01,  //   Logical maximum (1)
+    0x81, 0x02,  //   Input (data, variable, absolute)
+    // 8 bits input (padding)
+    0x95, 0x01,  //   Report count (1)
+    0x75, 0x08,  //   Report size (8)
+    0x81, 0x01,  //   Input (constant)
+    // 6 bytes input (keys list)
+    0x95, 0x06,  //   Report count (6)
+    0x75, 0x08,  //   Report size (8)
+    0x05, 0x07,  //   Usage page (key codes)
+    0x19, 0x00,  //   Usage minimum (reserved)
+    0x29, 0x65,  //   Usage maximum (application)
+    0x15, 0x00,  //   Logical minimum (reserved)
+    0x25, 0x65,  //   Logical maximum (application)
+    0x81, 0x00,  //   Input (data, array)
+    0xc0,        // End collection
 };
 
 /*
