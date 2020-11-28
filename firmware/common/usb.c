@@ -115,40 +115,32 @@ static void update_reset() {
 #define DESCRIPTOR_TYPE_CONFIGURATION 0x02
 #define DESCRIPTOR_TYPE_INTERFACE 0x04
 #define DESCRIPTOR_TYPE_ENDPOINT 0x05
-#define DESCRIPTOR_TYPE_HID_INTERFACE 0x21
-#define DESCRIPTOR_TYPE_HID_REPORT 0x22
+#define DESCRIPTOR_TYPE_HID 0x21
+#define DESCRIPTOR_TYPE_REPORT 0x22
 
 // Standard descriptor lengths
 #define DESCRIPTOR_LENGTH_DEVICE 18
 #define DESCRIPTOR_LENGTH_CONFIGURATION 9
 #define DESCRIPTOR_LENGTH_INTERFACE 9
 #define DESCRIPTOR_LENGTH_ENDPOINT 7
-#define DESCRIPTOR_LENGTH_HID_INTERFACE 9
+#define DESCRIPTOR_LENGTH_HID 9
+
+// Report length
+#define DESCRIPTOR_LENGTH_REPORT 45
 
 // Descriptors offsets
-#define DESCRIPTOR_OFFSET_DEVICE 0
-#define DESCRIPTOR_OFFSET_CONFIGURATION \
-  (DESCRIPTOR_OFFSET_DEVICE + DESCRIPTOR_LENGTH_DEVICE)
-#define DESCRIPTOR_OFFSET_INTERFACE \
-  (DESCRIPTOR_OFFSET_CONFIGURATION + DESCRIPTOR_LENGTH_CONFIGURATION)
-#define DESCRIPTOR_OFFSET_HID_INTERFACE \
-  (DESCRIPTOR_OFFSET_INTERFACE + DESCRIPTOR_LENGTH_INTERFACE)
-#define DESCRIPTOR_OFFSET_ENDPOINT \
-  (DESCRIPTOR_OFFSET_HID_INTERFACE + DESCRIPTOR_LENGTH_HID_INTERFACE)
-#define DESCRIPTOR_OFFSET_HID_REPORT \
-  (DESCRIPTOR_OFFSET_ENDPOINT + DESCRIPTOR_LENGTH_ENDPOINT)
+#define DESCRIPTOR_OFFSET_INTERFACE (DESCRIPTOR_LENGTH_CONFIGURATION)
+#define DESCRIPTOR_OFFSET_HID \
+  (DESCRIPTOR_LENGTH_CONFIGURATION + DESCRIPTOR_LENGTH_INTERFACE)
 
 // Total configuration length
 #define DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL                      \
   (DESCRIPTOR_LENGTH_CONFIGURATION + DESCRIPTOR_LENGTH_INTERFACE + \
-   DESCRIPTOR_LENGTH_HID_INTERFACE + DESCRIPTOR_LENGTH_ENDPOINT)
+   DESCRIPTOR_LENGTH_HID + DESCRIPTOR_LENGTH_ENDPOINT)
 
-// HID report length
-#define DESCRIPTOR_LENGTH_HID_REPORT 45
+// clang-format off
 
-static const uint8_t PROGMEM descriptors[] = {
-
-    // Device descriptor
+static const uint8_t PROGMEM descriptor_device[] = {
     DESCRIPTOR_LENGTH_DEVICE,  // bLength
     DESCRIPTOR_TYPE_DEVICE,    // bDescriptorType
     0x00, 0x02,                // bcdUSB (USB 2.0)
@@ -165,7 +157,9 @@ static const uint8_t PROGMEM descriptors[] = {
     0,                         // iProduct
     0,                         // iSerialNumber
     1,                         // bNumConfigurations
+};
 
+static const uint8_t PROGMEM descriptor_configuration[] = {
     // Configuration descriptor
     DESCRIPTOR_LENGTH_CONFIGURATION,             // bLength;
     DESCRIPTOR_TYPE_CONFIGURATION,               // bDescriptorType;
@@ -175,12 +169,11 @@ static const uint8_t PROGMEM descriptors[] = {
     1,                                           // bConfigurationValue
     0,                                           // iConfiguration
     0b10000000,                                  // bmAttributes
+                                                 //   bit 7: reserved = 1
+                                                 //   bit 6: 0 = not self-powered
+                                                 //   bit 5: 0 = no remote-wakeup
+                                                 //   bit 4-0: reserved = 0
     50,                                          // bMaxPower (100mA, arbitrary)
-    // bmAttributes
-    //   bit 7: reserved = 1
-    //   bit 6: 0 = not self-powered
-    //   bit 5: 0 = no remote-wakeup
-    //   bit 4-0: reserved = 0
 
     // Interface descriptor
     DESCRIPTOR_LENGTH_INTERFACE,  // bLength
@@ -193,33 +186,32 @@ static const uint8_t PROGMEM descriptors[] = {
     0x01,                         // bInterfaceProtocol (0x01 = Keyboard)
     0,                            // iInterface
 
-    // HID interface descriptor
-    DESCRIPTOR_LENGTH_HID_INTERFACE,    // bLength
-    DESCRIPTOR_TYPE_HID_INTERFACE,      // bDescriptorType
-    0x11, 0x01,                         // bcdHID (HID 1.11)
-    0,                                  // bCountryCode
-    1,                                  // bNumDescriptors
-    DESCRIPTOR_TYPE_HID_REPORT,         // bDescriptorType
-    lsb(DESCRIPTOR_LENGTH_HID_REPORT),  // wDescriptorLength
-    msb(DESCRIPTOR_LENGTH_HID_REPORT),  // wDescriptorLength
+    // HID descriptor
+    DESCRIPTOR_LENGTH_HID,          // bLength
+    DESCRIPTOR_TYPE_HID,            // bDescriptorType
+    0x11, 0x01,                     // bcdHID (HID 1.11)
+    0,                              // bCountryCode
+    1,                              // bNumDescriptors
+    DESCRIPTOR_TYPE_REPORT,         // bDescriptorType
+    lsb(DESCRIPTOR_LENGTH_REPORT),  // wDescriptorLength
+    msb(DESCRIPTOR_LENGTH_REPORT),  // wDescriptorLength
 
     // Endpoint descriptor
     DESCRIPTOR_LENGTH_ENDPOINT,  // bLength
     DESCRIPTOR_TYPE_ENDPOINT,    // bDescriptorType
     0b10000001,                  // bEndpointAddress
+                                 //   bit 7: 1 = IN
+                                 //   bit 6-4: reserved = 0
+                                 //   bit 3-0: 1 = endpoint number
     0b00000011,                  // bmAttributes
+                                 //   bit 7-2: reserved = 0
+                                 //   bit 1-0: 11 = interrupt endpoint
     lsb(ENDPOINT1_SIZE),         // wMaxPacketSize
     msb(ENDPOINT1_SIZE),         // wMaxPacketSize
     1,                           // bInterval (1ms polling interval)
-    // bEndpointAddress
-    //   bit 7: 1 = IN
-    //   bit 6-4: reserved = 0
-    //   bit 3-0: 1 = endpoint number
-    // bmAttributes
-    //   bit 7-2: reserved = 0
-    //   bit 1-0: 11 = interrupt endpoint
+};
 
-    // HID report descriptor
+static const uint8_t PROGMEM descriptor_report[] = {
     0x05, 0x01,  // Usage page (generic desktop)
     0x09, 0x06,  // Usage (keyboard)
     0xa1, 0x01,  // Start collection (application)
@@ -247,6 +239,8 @@ static const uint8_t PROGMEM descriptors[] = {
     0x81, 0x00,  //   Input (data, array)
     0xc0,        // End collection
 };
+
+// clang-format on
 
 /*
  * Control endpoint logic
@@ -320,7 +314,7 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet) {
   // Device descriptor
   if (descriptor_type == DESCRIPTOR_TYPE_DEVICE && descriptor_index == 0 &&
       setup_packet->wIndex == 0) {
-    descriptor_send(descriptors + DESCRIPTOR_OFFSET_DEVICE,
+    descriptor_send(descriptor_device,
                     min(setup_packet->wLength, DESCRIPTOR_LENGTH_DEVICE));
   }
 
@@ -328,23 +322,22 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet) {
   else if (descriptor_type == DESCRIPTOR_TYPE_CONFIGURATION &&
            descriptor_index == 0 && setup_packet->wIndex == 0) {
     descriptor_send(
-        descriptors + DESCRIPTOR_OFFSET_CONFIGURATION,
+        descriptor_configuration,
         min(setup_packet->wLength, DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL));
   }
 
-  // HID interface descriptor
-  else if (descriptor_type == DESCRIPTOR_TYPE_HID_INTERFACE &&
-           descriptor_index == 0 && setup_packet->wIndex == 0) {
-    descriptor_send(
-        descriptors + DESCRIPTOR_OFFSET_HID_INTERFACE,
-        min(setup_packet->wLength, DESCRIPTOR_LENGTH_HID_INTERFACE));
+  // HID descriptor
+  else if (descriptor_type == DESCRIPTOR_TYPE_HID && descriptor_index == 0 &&
+           setup_packet->wIndex == 0) {
+    descriptor_send(descriptor_configuration + DESCRIPTOR_OFFSET_HID,
+                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_HID));
   }
 
-  // HID report descriptor
-  else if (descriptor_type == DESCRIPTOR_TYPE_HID_REPORT &&
+  // Report descriptor
+  else if (descriptor_type == DESCRIPTOR_TYPE_REPORT &&
            descriptor_index == 0 && setup_packet->wIndex == 0) {
-    descriptor_send(descriptors + DESCRIPTOR_OFFSET_HID_REPORT,
-                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_HID_REPORT));
+    descriptor_send(descriptor_report,
+                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_REPORT));
   }
 
   // Unknown descriptor
