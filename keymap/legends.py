@@ -74,9 +74,6 @@ legends = {
     "Left": ("Key", 0x50),  # Left Arrow
     "Down": ("Key", 0x51),  # Down Arrow
     "Up": ("Key", 0x52),  # Up Arrow
-    "Mute": ("Key", 0x7F),  # Mute
-    "Vol+": ("Key", 0x80),  # Volume Up
-    "Vol-": ("Key", 0x81),  # Volume Down
     "LCtrl": ("Modifier", 0b00000001),  # Left Control
     "LShft": ("Modifier", 0b00000010),  # Left Shift
     "LAlt": ("Modifier", 0b00000100),  # Left Alt
@@ -85,5 +82,8 @@ legends = {
     "RShft": ("Modifier", 0b00100000),  # Right Shift
     "RAlt": ("Modifier", 0b01000000),  # Right Alt
     "RSup": ("Modifier", 0b10000000),  # Right Super
+    "Mute": ("Media", 0b00000001),  # Mute
+    "Vol+": ("Media", 0b00000010),  # Volume Up
+    "Vol-": ("Media", 0b00000100),  # Volume Down
     "Layer": ("Layer", 1),  # Layer 1
 }

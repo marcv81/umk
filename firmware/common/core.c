@@ -9,7 +9,10 @@
 #include "report_builder.h"
 #include "usb.h"
 
-static struct { usb_report_t report; } core;
+static struct {
+  usb_report_keyboard_t report_keyboard;
+  usb_report_media_t report_media;
+} core;
 
 static void on_pressed(uint8_t key) {
   keys_list_add(key);
@@ -28,6 +31,9 @@ static void rebuild(uint8_t key) {
     case Modifier: {
       report_builder_add_modifier(keycode.value);
     } break;
+    case Media: {
+      report_builder_add_media(keycode.value);
+    } break;
     case Layer: {
       layers_active_raise(keycode.value);
     } break;
@@ -38,7 +44,7 @@ void core_init() {
   usb_init();
   matrix_init(&debouncer_recv);
   debouncer_init(&on_pressed, &on_released);
-  report_builder_init(&core.report);
+  report_builder_init(&core.report_keyboard, &core.report_media);
 }
 
 void core_update() {
@@ -50,5 +56,6 @@ void core_update() {
   layers_active_reset();
   keys_list_iterate(&rebuild);
 
-  usb_report_send(&core.report);
+  usb_send_report_keyboard(&core.report_keyboard);
+  usb_send_report_media(&core.report_media);
 }

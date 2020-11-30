@@ -9,8 +9,13 @@ void usb_update();
 typedef struct {
   uint8_t modifiers;
   uint8_t keys[6];
-} usb_report_t;
+} usb_report_keyboard_t;
 
-void usb_report_send(const usb_report_t *report);
+typedef struct {
+  uint8_t keys;
+} usb_report_media_t;
+
+void usb_send_report_keyboard(const usb_report_keyboard_t *report);
+void usb_send_report_media(const usb_report_media_t *report);
 
 #endif  // USB_H

@@ -72,6 +72,13 @@ void usb_init() {
 #define ENDPOINT1_CFG1 \
   (ENDPOINT_CFG1_SIZE_8 | ENDPOINT_CFG1_BANK_DOUBLE | ENDPOINT_CFG1_ALLOCATE)
 
+// Media keys endpoint configuration
+#define ENDPOINT2_SIZE 8
+#define ENDPOINT2_CFG0 \
+  (ENDPOINT_CFG0_TYPE_INTERRUPT | ENDPOINT_CFG0_DIRECTION_IN)
+#define ENDPOINT2_CFG1 \
+  (ENDPOINT_CFG1_SIZE_8 | ENDPOINT_CFG1_BANK_DOUBLE | ENDPOINT_CFG1_ALLOCATE)
+
 #define MASK_UENUM 0b00000111
 
 // Select endpoint
@@ -101,6 +108,7 @@ static void update_reset() {
   // Configure the endpoints
   endpoint_init(0, ENDPOINT0_CFG0, ENDPOINT0_CFG1);
   endpoint_init(1, ENDPOINT1_CFG0, ENDPOINT1_CFG1);
+  endpoint_init(2, ENDPOINT2_CFG0, ENDPOINT2_CFG1);
 }
 
 /*
@@ -125,18 +133,21 @@ static void update_reset() {
 #define DESCRIPTOR_LENGTH_ENDPOINT 7
 #define DESCRIPTOR_LENGTH_HID 9
 
-// Report length
-#define DESCRIPTOR_LENGTH_REPORT 45
+// Report lengths for each interface
+#define DESCRIPTOR_LENGTH_REPORT0 45
+#define DESCRIPTOR_LENGTH_REPORT1 31
 
 // Descriptors offsets
-#define DESCRIPTOR_OFFSET_INTERFACE (DESCRIPTOR_LENGTH_CONFIGURATION)
-#define DESCRIPTOR_OFFSET_HID \
+#define DESCRIPTOR_OFFSET_HID0 \
   (DESCRIPTOR_LENGTH_CONFIGURATION + DESCRIPTOR_LENGTH_INTERFACE)
+#define DESCRIPTOR_OFFSET_HID1                                         \
+  (DESCRIPTOR_LENGTH_CONFIGURATION + 2 * DESCRIPTOR_LENGTH_INTERFACE + \
+   DESCRIPTOR_LENGTH_HID + DESCRIPTOR_LENGTH_ENDPOINT)
 
 // Total configuration length
-#define DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL                      \
-  (DESCRIPTOR_LENGTH_CONFIGURATION + DESCRIPTOR_LENGTH_INTERFACE + \
-   DESCRIPTOR_LENGTH_HID + DESCRIPTOR_LENGTH_ENDPOINT)
+#define DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL                          \
+  (DESCRIPTOR_LENGTH_CONFIGURATION + 2 * DESCRIPTOR_LENGTH_INTERFACE + \
+   2 * DESCRIPTOR_LENGTH_HID + 2 * DESCRIPTOR_LENGTH_ENDPOINT)
 
 // clang-format off
 
@@ -165,7 +176,7 @@ static const uint8_t PROGMEM descriptor_configuration[] = {
     DESCRIPTOR_TYPE_CONFIGURATION,               // bDescriptorType;
     lsb(DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL),  // wTotalLength
     msb(DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL),  // wTotalLength
-    1,                                           // bNumInterfaces
+    2,                                           // bNumInterfaces
     1,                                           // bConfigurationValue
     0,                                           // iConfiguration
     0b10000000,                                  // bmAttributes
@@ -175,7 +186,7 @@ static const uint8_t PROGMEM descriptor_configuration[] = {
                                                  //   bit 4-0: reserved = 0
     50,                                          // bMaxPower (100mA, arbitrary)
 
-    // Interface descriptor
+    // Interface 0 descriptor
     DESCRIPTOR_LENGTH_INTERFACE,  // bLength
     DESCRIPTOR_TYPE_INTERFACE,    // bDescriptorType
     0,                            // bInterfaceNumber
@@ -186,17 +197,17 @@ static const uint8_t PROGMEM descriptor_configuration[] = {
     0x01,                         // bInterfaceProtocol (0x01 = Keyboard)
     0,                            // iInterface
 
-    // HID descriptor
-    DESCRIPTOR_LENGTH_HID,          // bLength
-    DESCRIPTOR_TYPE_HID,            // bDescriptorType
-    0x11, 0x01,                     // bcdHID (HID 1.11)
-    0,                              // bCountryCode
-    1,                              // bNumDescriptors
-    DESCRIPTOR_TYPE_REPORT,         // bDescriptorType
-    lsb(DESCRIPTOR_LENGTH_REPORT),  // wDescriptorLength
-    msb(DESCRIPTOR_LENGTH_REPORT),  // wDescriptorLength
+    // HID descriptor for interface 0
+    DESCRIPTOR_LENGTH_HID,           // bLength
+    DESCRIPTOR_TYPE_HID,             // bDescriptorType
+    0x11, 0x01,                      // bcdHID (HID 1.11)
+    0,                               // bCountryCode
+    1,                               // bNumDescriptors
+    DESCRIPTOR_TYPE_REPORT,          // bDescriptorType
+    lsb(DESCRIPTOR_LENGTH_REPORT0),  // wDescriptorLength
+    msb(DESCRIPTOR_LENGTH_REPORT0),  // wDescriptorLength
 
-    // Endpoint descriptor
+    // Endpoint 1 descriptor
     DESCRIPTOR_LENGTH_ENDPOINT,  // bLength
     DESCRIPTOR_TYPE_ENDPOINT,    // bDescriptorType
     0b10000001,                  // bEndpointAddress
@@ -209,9 +220,44 @@ static const uint8_t PROGMEM descriptor_configuration[] = {
     lsb(ENDPOINT1_SIZE),         // wMaxPacketSize
     msb(ENDPOINT1_SIZE),         // wMaxPacketSize
     1,                           // bInterval (1ms polling interval)
+
+    // Interface 1 descriptor
+    DESCRIPTOR_LENGTH_INTERFACE,  // bLength
+    DESCRIPTOR_TYPE_INTERFACE,    // bDescriptorType
+    1,                            // bInterfaceNumber
+    0,                            // bAlternateSetting
+    1,                            // bNumEndpoints
+    0x03,                         // bInterfaceClass (0x03 = HID)
+    0,                            // bInterfaceSubClass
+    0,                            // bInterfaceProtocol
+    0,                            // iInterface
+
+    // HID descriptor for interface 1
+    DESCRIPTOR_LENGTH_HID,           // bLength
+    DESCRIPTOR_TYPE_HID,             // bDescriptorType
+    0x11, 0x01,                      // bcdHID (HID 1.11)
+    0,                               // bCountryCode
+    1,                               // bNumDescriptors
+    DESCRIPTOR_TYPE_REPORT,          // bDescriptorType
+    lsb(DESCRIPTOR_LENGTH_REPORT1),  // wDescriptorLength
+    msb(DESCRIPTOR_LENGTH_REPORT1),  // wDescriptorLength
+
+    // Endpoint 2 descriptor
+    DESCRIPTOR_LENGTH_ENDPOINT,  // bLength
+    DESCRIPTOR_TYPE_ENDPOINT,    // bDescriptorType
+    0b10000010,                  // bEndpointAddress
+                                 //   bit 7: 1 = IN
+                                 //   bit 6-4: reserved = 0
+                                 //   bit 3-0: 2 = endpoint number
+    0b00000011,                  // bmAttributes
+                                 //   bit 7-2: reserved = 0
+                                 //   bit 1-0: 11 = interrupt endpoint
+    lsb(ENDPOINT2_SIZE),         // wMaxPacketSize
+    msb(ENDPOINT2_SIZE),         // wMaxPacketSize
+    1,                           // bInterval (1ms polling interval)
 };
 
-static const uint8_t PROGMEM descriptor_report[] = {
+static const uint8_t PROGMEM descriptor_report0[] = {
     0x05, 0x01,  // Usage page (generic desktop)
     0x09, 0x06,  // Usage (keyboard)
     0xa1, 0x01,  // Start collection (application)
@@ -237,6 +283,27 @@ static const uint8_t PROGMEM descriptor_report[] = {
     0x15, 0x00,  //   Logical minimum (reserved)
     0x25, 0x65,  //   Logical maximum (application)
     0x81, 0x00,  //   Input (data, array)
+    0xc0,        // End collection
+};
+
+static const uint8_t PROGMEM descriptor_report1[] = {
+    0x05, 0x0c,  // Usage page (consumer devices)
+    0x09, 0x01,  // Usage (consumer control)
+    0xa1, 0x01,  // Start collection (application)
+    // 3 bits input (media keys bitmask)
+    0x95, 0x03,  //   Report count (3)
+    0x75, 0x01,  //   Report size (1)
+    0x05, 0x0c,  //   Usage page (consumer devices)
+    0x09, 0xe2,  //   Usage (mute)
+    0x09, 0xe9,  //   Usage (volume+)
+    0x09, 0xea,  //   Usage (volume-)
+    0x15, 0x00,  //   Logical minimum (0)
+    0x25, 0x01,  //   Logical maximum (1)
+    0x81, 0x02,  //   Input (data, variable, absolute)
+    // 5 bits input (padding)
+    0x95, 0x01,  //   Report count (1)
+    0x75, 0x05,  //   Report size (5)
+    0x81, 0x01,  //   Input (constant)
     0xc0,        // End collection
 };
 
@@ -311,39 +378,66 @@ static void descriptor_send_dispatch(setup_packet_t *setup_packet) {
   uint8_t descriptor_type = msb(setup_packet->wValue);
   uint8_t descriptor_index = lsb(setup_packet->wValue);
 
-  // Device descriptor
-  if (descriptor_type == DESCRIPTOR_TYPE_DEVICE && descriptor_index == 0 &&
-      setup_packet->wIndex == 0) {
-    descriptor_send(descriptor_device,
-                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_DEVICE));
-  }
+  switch (descriptor_type) {
+    // Device descriptor
+    case DESCRIPTOR_TYPE_DEVICE: {
+      if (descriptor_index != 0 || setup_packet->wIndex != 0) break;
+      uint16_t length = min(setup_packet->wLength, DESCRIPTOR_LENGTH_DEVICE);
+      descriptor_send(descriptor_device, length);
+      return;
+    } break;
 
-  // Configuration descriptor
-  else if (descriptor_type == DESCRIPTOR_TYPE_CONFIGURATION &&
-           descriptor_index == 0 && setup_packet->wIndex == 0) {
-    descriptor_send(
-        descriptor_configuration,
-        min(setup_packet->wLength, DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL));
-  }
+    // Configuration descriptor
+    case DESCRIPTOR_TYPE_CONFIGURATION: {
+      if (descriptor_index != 0 || setup_packet->wIndex != 0) break;
+      uint16_t length =
+          min(setup_packet->wLength, DESCRIPTOR_LENGTH_CONFIGURATION_TOTAL);
+      descriptor_send(descriptor_configuration, length);
+      return;
+    } break;
 
-  // HID descriptor
-  else if (descriptor_type == DESCRIPTOR_TYPE_HID && descriptor_index == 0 &&
-           setup_packet->wIndex == 0) {
-    descriptor_send(descriptor_configuration + DESCRIPTOR_OFFSET_HID,
-                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_HID));
-  }
+    // HID descriptors
+    case DESCRIPTOR_TYPE_HID: {
+      if (descriptor_index != 0) break;
+      uint16_t length = min(setup_packet->wLength, DESCRIPTOR_LENGTH_HID);
+      switch (setup_packet->wIndex) {
+        case 0: {
+          const uint8_t *data =
+              descriptor_configuration + DESCRIPTOR_OFFSET_HID0;
+          descriptor_send(data, length);
+          return;
+        }
+        case 1: {
+          const uint8_t *data =
+              descriptor_configuration + DESCRIPTOR_OFFSET_HID1;
+          descriptor_send(data, length);
+          return;
+        }
+      }
+    } break;
 
-  // Report descriptor
-  else if (descriptor_type == DESCRIPTOR_TYPE_REPORT &&
-           descriptor_index == 0 && setup_packet->wIndex == 0) {
-    descriptor_send(descriptor_report,
-                    min(setup_packet->wLength, DESCRIPTOR_LENGTH_REPORT));
+    // Report descriptors
+    case DESCRIPTOR_TYPE_REPORT: {
+      if (descriptor_index != 0) break;
+      switch (setup_packet->wIndex) {
+        case 0: {
+          uint16_t length =
+              min(setup_packet->wLength, DESCRIPTOR_LENGTH_REPORT0);
+          descriptor_send(descriptor_report0, length);
+          return;
+        }
+        case 1: {
+          uint16_t length =
+              min(setup_packet->wLength, DESCRIPTOR_LENGTH_REPORT1);
+          descriptor_send(descriptor_report1, length);
+          return;
+        }
+      }
+    } break;
   }
 
   // Unknown descriptor
-  else {
-    set_bit(UECONX, STALLRQ);
-  }
+  set_bit(UECONX, STALLRQ);
 }
 
 // Respond to the setup packets sent to the control endpoint
@@ -412,12 +506,12 @@ static void update_endpoint_control() {
  */
 
 static struct {
-  usb_report_t report;
+  usb_report_keyboard_t report;
   bool transfer_requested;
 } endpoint_keyboard;
 
-// Compare a report with the one in the endpoint
-static bool report_equals(const usb_report_t *report) {
+// Compare a keyboard report with the one in the endpoint
+static bool report_keyboard_equals(const usb_report_keyboard_t *report) {
   if (endpoint_keyboard.report.modifiers != report->modifiers) {
     return false;
   }
@@ -429,16 +523,16 @@ static bool report_equals(const usb_report_t *report) {
   return true;
 }
 
-// Copy a report to the endpoint
-static void report_copy(const usb_report_t *report) {
+// Copy a keyboard report to the one in the endpoint
+static void copy_report_keyboard(const usb_report_keyboard_t *report) {
   endpoint_keyboard.report.modifiers = report->modifiers;
   for (uint8_t i = 0; i < 6; i++) {
     endpoint_keyboard.report.keys[i] = report->keys[i];
   }
 }
 
-// Transfer the report in the endpoint
-static void report_transfer() {
+// Transfer the keyboard report in the endpoint to the host
+static void transfer_report_keyboard() {
   UEDATX = endpoint_keyboard.report.modifiers;
   UEDATX = 0;
   for (uint8_t i = 0; i < 6; i++) {
@@ -446,24 +540,64 @@ static void report_transfer() {
   }
 }
 
-// Send a report
+// Send a keyboard report
 // Only request a transfer to the host if the contents changed
-void usb_report_send(const usb_report_t *report) {
-  if (report_equals(report)) return;
+void usb_send_report_keyboard(const usb_report_keyboard_t *report) {
+  if (report_keyboard_equals(report)) return;
   endpoint_keyboard.transfer_requested = true;
-  report_copy(report);
+  copy_report_keyboard(report);
 }
 
-// Transfer the report when there is a pending request
-// and writing on the endpoint is allowed
+// Transfer the keyboard report when there is a pending request
+// and writing to the endpoint is allowed
 static void update_endpoint_keyboard() {
   if (!endpoint_keyboard.transfer_requested) return;
   endpoint_select(1);
   if (!read_bit(UEINTX, RWAL)) return;
-
-  report_transfer();
+  transfer_report_keyboard();
   clear_bit(UEINTX, FIFOCON);
   endpoint_keyboard.transfer_requested = false;
+}
+
+/*
+ * Media keys endpoint logic
+ */
+
+static struct {
+  usb_report_media_t report;
+  bool transfer_requested;
+} endpoint_media;
+
+// Compare a media keys report with the one in the endpoint
+static bool report_media_equals(const usb_report_media_t *report) {
+  return (endpoint_media.report.keys == report->keys);
+}
+
+// Copy a media keys report to the one in the endpoint
+static void copy_report_media(const usb_report_media_t *report) {
+  endpoint_media.report.keys = report->keys;
+}
+
+// Transfer the media keys report in the endpoint to the host
+static void transfer_report_media() { UEDATX = endpoint_media.report.keys; }
+
+// Send a media keys report
+// Only request a transfer to the host if the contents changed
+void usb_send_report_media(const usb_report_media_t *report) {
+  if (report_media_equals(report)) return;
+  endpoint_media.transfer_requested = true;
+  copy_report_media(report);
+}
+
+// Transfer the media keys report when there is a pending request
+// and writing to the endpoint is allowed
+static void update_endpoint_media() {
+  if (!endpoint_media.transfer_requested) return;
+  endpoint_select(2);
+  if (!read_bit(UEINTX, RWAL)) return;
+  transfer_report_media();
+  clear_bit(UEINTX, FIFOCON);
+  endpoint_media.transfer_requested = false;
 }
 
 /*
@@ -474,4 +608,5 @@ void usb_update() {
   update_reset();
   update_endpoint_control();
   update_endpoint_keyboard();
+  update_endpoint_media();
 }
