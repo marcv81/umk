@@ -14,19 +14,19 @@ layer0 = """
 
  Esc    1     2     3     4     5                       6     7     8     9     0     =
   '     Q     W     E     R     T                       Y     U     I     O     P     -
-LCtrl   A     S     D     F     G                       H     J     K     L     ;   RCtrl
-LShft   Z     X     C     V     B   LAlt         RAlt   N     M     ,     .     /   RShft
-                        Layer Space LSup         RSup BckSp Layer
+CtrlL   A     S     D     F     G                       H     J     K     L     ;   CtrlR
+ShftL   Z     X     C     V     B   AltL        AltR    N     M     ,     .     /   ShftR
+                        Layer Space SupL        SupR  BckSp Layer
 
 """
 
 layer1 = """
 
- ---   F1    F2    F3    F4    F5                       F6    F7    F8    F9   F10   F11
- ---   ---   ---  PgUp   ---   ---                     ---   ---    Up   ---   ---   F12
-LCtrl  ---  Home  PgDn   End    [                       `    Left  Down Right  ---  RCtrl
-LShft  ---  Mute   Vol-  Vol+   ]   LAlt         RAlt   \    ---   ---   ---   ---  RShft
-                        Layer  Tab  LSup         RSup Enter Layer
+Mute   ---   F10   F11   F12   ---                     ---   ---   ---   ---   ---  Vol+
+ ---   ---   F7    F8    F9    ---                    PgUp  Home   Up    End   Ins  Vol-
+CtrlL  ---   F4    F5    F6    ---                    PgDn  Left  Down  Right  Del  CtrlR
+ShftL  ---   F1    F2    F3    ---  AltL        AltR    `     \    ---    [     ]   ShftR
+                        Layer  Tab  SupL        SupR  Enter Layer
 
 """
 
