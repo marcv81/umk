@@ -115,8 +115,8 @@ static void update_reset() {
  * USB descriptors
  */
 
-#define VENDOR_ID 0x046a   // Cherry
-#define PRODUCT_ID 0x0001  // Keyboard
+#define VENDOR_ID 0xcafe
+#define PRODUCT_ID 0xbabe
 
 // Standard descriptor types
 #define DESCRIPTOR_TYPE_DEVICE 0x01
