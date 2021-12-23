@@ -13,7 +13,7 @@ mapping = """
 layer0 = """
 
  Esc    1     2     3     4     5   PrtSc ScrLk Pause   6     7     8     9     0     =
-  '     Q     W     E     R     T    ---   ---   ---    Y     U     I     O     P     -
+  '     Q     W     E     R     T    ---  Timer  ---    Y     U     I     O     P     -
 CtrlL   A     S     D     F     G   SupL  CpsLk SupR    H     J     K     L     ;   CtrlR
 ShftL   Z     X     C     V     B   AltL   Up   AltR    N     M     ,     .     /   ShftR
 Layer   `     \   Space       Space Left  Down  Right BckSp       BckSp   [     ]   Layer

@@ -90,4 +90,5 @@ legends = {
     "Vol+": ("Media", 0b00000010),  # Volume Up
     "Vol-": ("Media", 0b00000100),  # Volume Down
     "Layer": ("Layer", 1),  # Layer 1
+    "Timer": ("Timer", 0)  # Timer
 }

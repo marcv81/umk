@@ -12,6 +12,7 @@
 static struct {
   usb_report_keyboard_t report_keyboard;
   usb_report_media_t report_media;
+  bool flip;
 } core;
 
 static void on_pressed(uint8_t key) {
@@ -37,6 +38,15 @@ static void rebuild(uint8_t key) {
     case Layer: {
       layers_active_raise(keycode.value);
     } break;
+    case Timer: {
+      if (core.flip) {
+        core.flip = false;
+      }
+      else {
+        core.flip = true;
+        report_builder_add_modifier(0b00000010);
+      }
+    }
   }
 }
 
