@@ -52,6 +52,7 @@ legends = {
     ",": ("Key", 0x36),  # , and <
     ".": ("Key", 0x37),  # . and >
     "/": ("Key", 0x38),  # / and ?
+    "CpsLk": ("Key", 0x39),  # Caps Lock
     "F1": ("Key", 0x3A),  # F1
     "F2": ("Key", 0x3B),  # F2
     "F3": ("Key", 0x3C),  # F3
@@ -64,6 +65,9 @@ legends = {
     "F10": ("Key", 0x43),  # F10
     "F11": ("Key", 0x44),  # F11
     "F12": ("Key", 0x45),  # F12
+    "PrtSc": ("Key", 0x46),  # Print Screen
+    "ScrLk": ("Key", 0x47),  # Scroll Lock
+    "Pause": ("Key", 0x48),  # Pause Break
     "Ins": ("Key", 0x49),  # Insert
     "Home": ("Key", 0x4A),  # Home
     "PgUp": ("Key", 0x4B),  # Page Up
